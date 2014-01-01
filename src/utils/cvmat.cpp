@@ -9,7 +9,10 @@ Eigen::MatrixXf compressPCA(const cv::PCA& pca, Eigen::MatrixXf features) {
 	cv::Mat cv_features(features.rows(), features.cols(), CV_32FC1, features.data());
 	cv::Mat cv_comp_features(features.rows(), maxComponents, CV_32FC1);
 	for( int i = 0; i < cv_comp_features.rows; i++ ) {
-		pca.project(cv_features.row(i), cv_comp_features.row(i));
+	  cv::Mat dest = cv_comp_features.row(i);
+	  // pca.project(cv_features.row(i), cv_comp_features.row(i));
+	  pca.project(cv_features.row(i), dest);
+	  cv_comp_features.row(i) = dest;
 	}
 	return Map<MatrixXf>((float*)cv_comp_features.data, cv_comp_features.rows, cv_comp_features.cols);
 }

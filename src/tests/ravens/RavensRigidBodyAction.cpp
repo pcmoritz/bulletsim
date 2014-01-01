@@ -1,6 +1,10 @@
 #include "RavensRigidBodyAction.h"
 #include "CustomScene.h"
 
+float RavensRigidBodyGripperAction::CLOSED_VAL = 0.0f;
+float RavensRigidBodyGripperAction::CLOSED_VAL_PEG = 0.015f;
+float RavensRigidBodyGripperAction::OPEN_VAL = 0.30f;
+
 RavensRigidBodyGripperAction::RavensRigidBodyGripperAction(RaveRobotObject::Manipulator::Ptr manip_,
 		const string &leftFingerName,
 		const string &rightFingerName,
@@ -45,7 +49,7 @@ void RavensRigidBodyGripperAction::setOpenAction()  {
 
 
 void RavensRigidBodyGripperAction::setCloseAction() {
-	setEndpoints(getCurrDOFVal(), (hasPeg ? CLOSED_VAL_PEG :CLOSED_VAL));
+	setEndpoints(getCurrDOFVal(), (hasPeg ? CLOSED_VAL_PEG : CLOSED_VAL));
 	stringstream msgss;
 	msgss << "grab " << arm << "\n";
 	s.recordMessage(msgss.str());
@@ -53,7 +57,7 @@ void RavensRigidBodyGripperAction::setCloseAction() {
 
 
 void RavensRigidBodyGripperAction::toggleAction() {
-	if (endVal == (hasPeg ? CLOSED_VAL_PEG :CLOSED_VAL))
+	if (endVal == (hasPeg ? CLOSED_VAL_PEG : CLOSED_VAL))
 		setOpenAction();
 	else if (endVal == OPEN_VAL)
 		setCloseAction();
