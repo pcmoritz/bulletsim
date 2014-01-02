@@ -527,7 +527,7 @@ SceneGeometry BoxCloth::getBoxClothGeometry() {
 			btVector3 xVec = currTfm.getBasis().getColumn(0);
 			btVector3 yVec = currTfm.getBasis().getColumn(1);
 			btVector3 zVec = currTfm.getBasis().getColumn(2);
-			geometry.add_vertex(center + xVec * s/2 + yVec * s/2 - zVec * s/2);
+			geometry.add_vertex(center + xVec * s/2 + yVec * s/2 - zVec * h/2);
 			if (x != n - 1 && y != m - 1) {
 				geometry.add_face(n * m + n * y + x,
 						n * m + n * y + x + 1,

@@ -1216,5 +1216,7 @@ void CustomScene::testTrajectory2() {
 }
 
 SceneGeometry CustomScene::getSceneGeometry() {
-	return cloth1->getBoxClothGeometry();
+	SceneGeometry geometry = cloth1->getBoxClothGeometry();
+	geometry.append(cloth2->getBoxClothGeometry());
+	return geometry;
 }

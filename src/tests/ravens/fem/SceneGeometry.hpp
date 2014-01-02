@@ -29,6 +29,13 @@ public:
 	void add_face(std::size_t e1, std::size_t e2, std::size_t e3, std::size_t e4) {
 		faces.push_back(Face(e1, e2, e3, e4));
 	}
+	std::vector<btVector3> get_vertices() const {
+		return vertices;
+	}
+	std::vector<Face> get_faces() const {
+		return faces;
+	}
+	void append(const SceneGeometry& geometry);
 };
 
 #endif
