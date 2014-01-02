@@ -6,12 +6,14 @@
 #include <boost/shared_ptr.hpp>
 #include <fstream>
 #include <algorithm>
+#include <utility>
 #include "lfd/utils_python.h"
 #include <utils/colorize.h>
 
 #include "lfd/TPSBijectWrapper.hpp"
 
 #include "fem/SceneGeometry.hpp"
+#include "fem/FEMRegistration.hpp"
 
 using namespace std;
 
@@ -378,16 +380,19 @@ void ScenePlayer::setupNewSegment() {
 		}
 
 		// Export the position of the suturing pad
-		SceneGeometry geometry = scene.getSceneGeometry();
+		std::pair<SceneGeometry, SceneGeometry> geometry = scene.getSceneGeometry();
 		ofstream outfile;
 		outfile.open ("/home/pcm/geometry.off");
 		outfile << "OFF";
-		outfile << geometry << std::endl;
+		outfile << geometry.first << std::endl;
 		outfile.close();
 
 		stringstream msg;
 	    msg << "Writing to file ~/geometry.off";
 	    cout << colorize(msg.str(), "yellow", true) << endl;
+
+	    // FEMRegistration registration(btVector3(-15.0, -15.0, 5.0), btVector3(15.0, 15.0, 30.0));
+	    // registration.constructMesh(SceneGeometry(), SceneGeometry());
 
 		// warp the joints using LFD/ Trajopt
 		vector<vector<double> > warpedJoints;

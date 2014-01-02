@@ -95,9 +95,6 @@ void generate(Mesh& mesh, const dolfin::csg::Polyhedron_3& p, double cell_size) 
   build_mesh(c3t3, mesh);
 }
 
-// The transformation first scales the object by the vector (a, b, c),
-// then rotates it by the quaternion (x, y, z, w) and then shifts it
-// by the vector (t, u, v).
 template<class K>
 CGAL::Aff_transformation_3<K>
 cgal_transformation(double a, double b, double c,
@@ -192,24 +189,10 @@ struct CubeToCube : public dolfin::Expression
 };
 
 int main() {
-  std::string off_file = "../cube.off";
-  dolfin::csg::Exact_Polyhedron_3 cube; // unit cube
-  std::cout << "reading file " << off_file << std::endl;
-  std::ifstream file(off_file.c_str());
-  file >> cube;
-  std::cout << "done reading file." << std::endl;
-  double cell_size = 1.0;
-  bool detect_sharp_features = true;
+  dolfin::csg::Exact_Polyhedron_3 standard_cloth_2;
+
   Mesh m;
   Mesh m2;
-  
-  dolfin::csg::Exact_Polyhedron_3 outer(cube);
-  
-  // scale the outer box
-  CGAL::Aff_transformation_3<dolfin::csg::Exact_Kernel>
-    St(4, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0);
-  std::transform(outer.points_begin(), outer.points_end(), 
-  		 outer.points_begin(), St);
 
   // scale the inner box
   CGAL::Aff_transformation_3<dolfin::csg::Exact_Kernel>

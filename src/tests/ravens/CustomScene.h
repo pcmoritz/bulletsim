@@ -12,6 +12,7 @@
 #include <omp.h>
 #include <iostream>
 #include <sstream>
+#include <utility>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 
@@ -349,7 +350,7 @@ public:
 	void testGrasping();
 
 	/* Get a description of the suturing pads in the OFF file format */
-	SceneGeometry getSceneGeometry();
+	std::pair<SceneGeometry, SceneGeometry> getSceneGeometry();
 };
 
 

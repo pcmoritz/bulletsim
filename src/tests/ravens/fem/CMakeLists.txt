@@ -9,6 +9,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frounding-math")
 execute_process(COMMAND ffc -l dolfin model.ufl
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
   
+configure_file(cube.off cube.off COPYONLY)
+configure_file(standard-geometry-cloth-1.off standard-geometry-cloth-1.off COPYONLY)
+configure_file(standard-geometry-cloth-2.off standard-geometry-cloth-2.off COPYONLY)
+  
 link_directories("/usr/lib/")
 include_directories("${DOLFIN_INCLUDE_DIRS}")
 

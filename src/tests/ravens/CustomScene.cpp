@@ -1215,8 +1215,8 @@ void CustomScene::testTrajectory2() {
 	}
 }
 
-SceneGeometry CustomScene::getSceneGeometry() {
-	SceneGeometry geometry = cloth1->getBoxClothGeometry();
-	geometry.append(cloth2->getBoxClothGeometry());
-	return geometry;
+std::pair<SceneGeometry, SceneGeometry> CustomScene::getSceneGeometry() {
+	SceneGeometry g = cloth1->getBoxClothGeometry();
+	SceneGeometry h = cloth2->getBoxClothGeometry();
+	return std::make_pair(g, h);
 }

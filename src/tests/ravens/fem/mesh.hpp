@@ -41,6 +41,16 @@
 typedef CGAL::Simple_cartesian<double> IK;
 typedef CGAL::Cartesian_converter<IK,dolfin::csg::Exact_Kernel> IK_to_EK;
 
+void generate(dolfin::Mesh& mesh, const dolfin::csg::Polyhedron_3& p, double cell_size);
+
+// The transformation first scales the object by the vector (a, b, c),
+// then rotates it by the quaternion (x, y, z, w) and then shifts it
+// by the vector (t, u, v).
+template<class K> CGAL::Aff_transformation_3<K>
+cgal_transformation(double a, double b, double c,
+		    double x, double y, double z, double w,
+		    double t, double u, double v);
+
 
 
 #endif
