@@ -39,6 +39,8 @@
 #include <osgViewer/ViewerEventHandlers>
 #include <osgDB/WriteFile>
 
+#include "fem/SceneGeometry.hpp"
+
 struct SaveImageOp: public osgViewer::ScreenCaptureHandler::CaptureOperation {
 	string fname;
 
@@ -345,6 +347,9 @@ public:
 	void testNeedle();
 	void testGrab();
 	void testGrasping();
+
+	/* Get a description of the suturing pads in the OFF file format */
+	SceneGeometry getSceneGeometry();
 };
 
 

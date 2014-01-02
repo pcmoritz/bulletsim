@@ -498,3 +498,56 @@ void BoxCloth::init() {
 void BoxCloth::destroy() {
 	CompoundObject<BulletObject>::destroy();
 }
+
+SceneGeometry BoxCloth::getBoxClothGeometry() {
+	SceneGeometry geometry;
+	// add upper layer of cloth to the scene
+	for(unsigned int y = 0; y < m; y++) {
+		for(unsigned int x = 0; x < n; x++) {
+			unsigned int curr = grid_to_obj_inds[std::make_pair(x, y)];
+			// the 0 in getIndexTransform is ignored, see its implementation
+			btTransform currTfm = children[curr]->getIndexTransform(0);
+			btVector3 center = currTfm.getOrigin();
+			btVector3 xVec = currTfm.getBasis().getColumn(0);
+			btVector3 yVec = currTfm.getBasis().getColumn(1);
+			btVector3 zVec = currTfm.getBasis().getColumn(2);
+			geometry.add_vertex(center + xVec * s/2 + yVec * s/2 + zVec * s/2);
+			if (x != n - 1 && y != m - 1) {
+				geometry.add_face(n * y + x, n * y + x + 1, n * y + x + 1 + n, n * y + x + n);
+			}
+		}
+	}
+	// add lower layer of cloth to the scene
+	for(unsigned int y = 0; y < m; y++) {
+		for(unsigned int x = 0; x < n; x++) {
+			unsigned int curr = grid_to_obj_inds[std::make_pair(x, y)];
+			// the 0 in getIndexTransform is ignored, see its implementation
+			btTransform currTfm = children[curr]->getIndexTransform(0);
+			btVector3 center = currTfm.getOrigin();
+			btVector3 xVec = currTfm.getBasis().getColumn(0);
+			btVector3 yVec = currTfm.getBasis().getColumn(1);
+			btVector3 zVec = currTfm.getBasis().getColumn(2);
+			geometry.add_vertex(center + xVec * s/2 + yVec * s/2 - zVec * s/2);
+			if (x != n - 1 && y != m - 1) {
+				geometry.add_face(n * m + n * y + x,
+						n * m + n * y + x + 1,
+						n * m + n * y + x + 1 + n,
+						n * m + n * y + x + n);
+			}
+		}
+	}
+	// add connections between upper and lower layer
+	for(unsigned int y = 0; y < m; y += m-1) {
+		for(unsigned int x = 0; x < n-1; x++) {
+			geometry.add_face(n * y + x, n * y + x + 1,
+					n * m + n * y + x + 1, n * m + n * y + x);
+		}
+	}
+	for(unsigned int x = 0; x < n; x += n-1) {
+			for(unsigned int y = 0; y < m-1; y++) {
+				geometry.add_face(n * y + x, n * (y + 1) + x,
+						n * m + n * (y +1) + x, n * m + n * y + x);
+			}
+		}
+	return geometry;
+}

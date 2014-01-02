@@ -11,6 +11,8 @@
 
 #include "lfd/TPSBijectWrapper.hpp"
 
+#include "fem/SceneGeometry.hpp"
+
 using namespace std;
 
 
@@ -374,6 +376,18 @@ void ScenePlayer::setupNewSegment() {
 			scene.getBoxHoles(target_hole, 1.0/METERS);
 			target_clouds.push_back(target_hole);
 		}
+
+		// Export the position of the suturing pad
+		SceneGeometry geometry = scene.getSceneGeometry();
+		ofstream outfile;
+		outfile.open ("/home/pcm/geometry.off");
+		outfile << "OFF";
+		outfile << geometry << std::endl;
+		outfile.close();
+
+		stringstream msg;
+	    msg << "Writing to file ~/geometry.off";
+	    cout << colorize(msg.str(), "yellow", true) << endl;
 
 		// warp the joints using LFD/ Trajopt
 		vector<vector<double> > warpedJoints;

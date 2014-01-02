@@ -9,6 +9,8 @@
 #include <utils/config.h>
 #include <utility>
 
+#include "fem/SceneGeometry.hpp"
+
 class CustomScene;
 
 class BoxCloth : public CompoundObject<BulletObject> {
@@ -77,4 +79,7 @@ public:
 
 	void init();
 	void destroy();
+
+	/* Get the cloth geometry in OFF format; if this it to be combined with other parts of the scene, the indices have to be remapped */
+	SceneGeometry getBoxClothGeometry();
 };

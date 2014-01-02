@@ -1214,3 +1214,7 @@ void CustomScene::testTrajectory2() {
 		std::cout<<"Plan failed!"<<std::endl;
 	}
 }
+
+SceneGeometry CustomScene::getSceneGeometry() {
+	return cloth1->getBoxClothGeometry();
+}

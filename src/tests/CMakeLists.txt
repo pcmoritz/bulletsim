@@ -83,6 +83,8 @@ add_definitions("-DRAVENS_STORE_DIR=${RAVENS_STORE_DIR}")
 
 add_subdirectory(ravens/lfd)
 
+add_subdirectory(ravens/fem)
+
 find_package(Boost COMPONENTS python)
 include_directories (${Boost_INCLUDE_DIRS})
 find_package(PythonLibs)
@@ -103,7 +105,7 @@ add_executable(ravens ravens/test_ravens.cpp
                       ravens/ScenePlayer.cpp
                       ravens/BoxCloth.cpp)
 
-target_link_libraries(ravens simulation robots lfd)
+target_link_libraries(ravens simulation robots lfd fem)
 add_executable(test_lfd_wrapper ravens/test_lfd_wrapper.cpp )
 target_link_libraries(test_lfd_wrapper simulation lfd)
 
