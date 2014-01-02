@@ -1,8 +1,8 @@
 // A geometric description of the scene that is suitable for
 // subsequent mesh generation
 
-#ifndef SCENE_GENERATION_HPP
-#define SCENE_GENERATION_HPP
+#ifndef SCENE_GEOMETRY_HPP
+#define SCENE_GEOMETRY_HPP
 
 #include <vector>
 #include <btBulletDynamicsCommon.h>
