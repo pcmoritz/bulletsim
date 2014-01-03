@@ -16,13 +16,6 @@
 #include "fem/FEMRegistration.hpp"
 
 #include "fem/model.h"
-#include <dolfin.h>
-#include <dolfin/plot/plot.h>
-#include <dolfin/common/MPI.h>
-#include <dolfin/log/log.h>
-#include <dolfin/mesh/Mesh.h>
-#include <dolfin/mesh/MeshEditor.h>
-#include <dolfin/mesh/MeshPartitioning.h>
 
 
 using namespace std;
@@ -422,6 +415,16 @@ void ScenePlayer::setupNewSegment() {
 	    // YOUR CODE HERE
 	    using namespace dolfin;
 
+	    Mesh standard_mesh;
+	    tetgenio tet_standard = constructMesh(first_standard, second_standard, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
+	    build_mesh(tet_standard, standard_mesh);
+
+	    std::cout << "second mesh built" << std::endl;
+
+	    dolfin::plot(standard_mesh, "mesh of standard situation");
+	    dolfin::interactive(true);
+
+	    model::FunctionSpace V(standard_mesh);
 
 		// warp the joints using LFD/ Trajopt
 		vector<vector<double> > warpedJoints;
