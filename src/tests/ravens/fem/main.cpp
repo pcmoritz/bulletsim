@@ -5,11 +5,11 @@
 
 int main() {
 	SceneGeometry cube = load("/home/pcm/Dropbox/data/cube.off");
-	// SceneGeometry first = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
-	// SceneGeometry second = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
+	SceneGeometry first = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
+	SceneGeometry second = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
 
-	SceneGeometry first = load("/home/pcm/geometry1.off");
-	SceneGeometry second = load("/home/pcm/geometry2.off");
+	//SceneGeometry first = load("/home/pcm/geometry1.off");
+	//SceneGeometry second = load("/home/pcm/geometry2.off");
 
 	first.set_center(btVector3(3, -2, 16.0));
 	second.set_center(btVector3(-3, -2, 16.0));
