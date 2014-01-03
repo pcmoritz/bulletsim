@@ -36,11 +36,9 @@ public:
 		return faces;
 	}
 	void append(const SceneGeometry& geometry);
-
-	bool on_boundary(btVector3 p, const SceneGeometry& g);
-
 };
 
 SceneGeometry load(const std::string& file_name);
+bool on_boundary(btVector3 p, const SceneGeometry& g);
 
 #endif

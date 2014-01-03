@@ -1,5 +1,5 @@
 #include "FEMRegistration.hpp"
-#include "tetgen/tetgen.h"
+#include "TetGen/tetgen.h"
 
 NonRigidTransform FEMRegistration::constructTransform()
 {

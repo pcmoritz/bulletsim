@@ -17,8 +17,10 @@ execute_process(COMMAND ffc -l dolfin model.ufl
 # configure_file(cube.off cube.off COPYONLY)
 # configure_file(standard-geometry-cloth-1.off standard-geometry-cloth-1.off COPYONLY)
 # configure_file(standard-geometry-cloth-2.off standard-geometry-cloth-2.off COPYONLY)
-  
+
+
 include_directories("${DOLFIN_INCLUDE_DIRS}")
+
 
 # find_package(Boost COMPONENTS python)
 # include_directories (${Boost_INCLUDE_DIRS})
@@ -29,8 +31,14 @@ find_package(Boost REQUIRED COMPONENTS thread)
 
 # link_directories("/usr/lib/")
 
+add_subdirectory(TetGen)
+
+find_package(Bullet)
+
+include_directories (${BULLET_INCLUDE_DIRS})
+
 add_executable(main main.cpp SceneGeometry.cpp FEMRegistration.cpp)
-target_link_libraries(main  ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} CGAL tetgen)
+target_link_libraries(main  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} TetGen)
 
 add_library(fem SceneGeometry.cpp FEMRegistration.cpp mesh.cpp)
 target_link_libraries(fem  ${CGAL_LIBRARIES} ${DOLFIN_LIBRARIES})
