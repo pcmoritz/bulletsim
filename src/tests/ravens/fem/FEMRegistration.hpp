@@ -36,9 +36,9 @@ public:
 		xmin = a.getX();
 		ymin = a.getY();
 		zmin = a.getZ();
-		xmax = a.getX();
-		ymax = a.getY();
-		zmax = a.getZ();
+		xmax = b.getX();
+		ymax = b.getY();
+		zmax = b.getZ();
 	}
 	Meshes constructMesh(const SceneGeometry& cloth1, const SceneGeometry& cloth2);
 	NonRigidTransform constructTransform();

@@ -4,7 +4,7 @@
 using namespace dolfin;
 
 int main() {
-  std::string off_file = "../cube.off";
+  std::string off_file = "~/data/cube.off";
   csg::Exact_Polyhedron_3 cube; // unit cube
   std::cout << "reading file " << off_file << std::endl;
   std::ifstream file(off_file.c_str());
@@ -18,8 +18,9 @@ int main() {
   csg::Exact_Polyhedron_3 outer(cube);
 
   // scale the outer box
-  CGAL::Aff_transformation_3<csg::Exact_Kernel>
-    St(4, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0);
+  //CGAL::Aff_transformation_3<csg::Exact_Kernel>
+  //   St(4, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0);
+  CGAL::Aff_transformation_3<csg::Exact_Kernel> St(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0);
   std::transform(outer.points_begin(), outer.points_end(),
   		 outer.points_begin(), St);
 
@@ -44,11 +45,11 @@ int main() {
   std::transform(third_inner.points_begin(), third_inner.points_end(),
   		 third_inner.points_begin(), TTT);
 
-  Omega -= first_inner;
-  Omega -= second_inner;
+  // Omega -= first_inner;
+  // Omega -= second_inner;
 
-  Omega2 -= first_inner;
-  Omega2 -= third_inner;
+  // Omega2 -= first_inner;
+  // Omega2 -= third_inner;
 
   csg::Exact_Polyhedron_3 p;
   Omega.convert_to_polyhedron(p);

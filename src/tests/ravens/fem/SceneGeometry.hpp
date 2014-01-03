@@ -36,6 +36,7 @@ public:
 		return faces;
 	}
 	void append(const SceneGeometry& geometry);
+	void load(const std::string& file_name);
 };
 
 #endif

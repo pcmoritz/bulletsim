@@ -1,4 +1,5 @@
 #include "SceneGeometry.hpp"
+#include <fstream>
 
 std::ostream& operator<<(std::ostream& out, const SceneGeometry& g) {
 	// output header
@@ -31,4 +32,27 @@ void SceneGeometry::append(const SceneGeometry& geometry)
 	for(std::size_t i = 0; i < fs.size(); i++) {
 		add_face(fs[i].edges[0] + V, fs[i].edges[1] + V, fs[i].edges[2] + V, fs[i].edges[3] + V);
 	}
+}
+
+void SceneGeometry::load(const std::string& file_name) {
+	std::ifstream file;
+	file.open(file_name.c_str());
+	if(!file.is_open()) {
+		std::cout << "Could not load file " << file_name << std::endl;
+		std::exit(1);
+	}
+	std::string header;
+	file >> header;
+	if(header != "OFF") {
+		std::cout << "File is not an OFF file" << std::endl;
+		std::exit(1);
+	}
+	int numVert = 0;
+	int numFaces = 0;
+	int numEdges = 0;
+	std::string token;
+	while(file >> token) {
+
+	}
+	file.close();
 }

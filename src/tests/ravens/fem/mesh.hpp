@@ -1,6 +1,8 @@
 #ifndef MESH_HPP
 #define MESH_HPP
 
+#define CGAL_HAS_THREADS 1
+
 #include <stdio.h>
 #include <iostream>
 #include <cmath>

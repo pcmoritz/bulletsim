@@ -65,15 +65,19 @@ void build_mesh(const dolfin::csg::C3t3& c3t3, dolfin::Mesh& mesh)
 
 void generate(dolfin::Mesh& mesh, const dolfin::csg::Polyhedron_3& p, double cell_size) {
   dolfin_assert(p.is_pure_triangle());
-  dolfin::csg::Mesh_domain domain(p);
-  domain.detect_features();
+  std::cout << "g0" << std::endl;
+  std::cout << p << std::endl;
+  dolfin::csg::Mesh_domain* domain = new dolfin::csg::Mesh_domain(p);
+  std::cout << "g1" << std::endl;
+  domain->detect_features();
+  std::cout << "g2" << std::endl;
   dolfin::csg::Mesh_criteria criteria(CGAL::parameters::facet_angle = 25,
 			      CGAL::parameters::facet_size = cell_size,
 			      CGAL::parameters::cell_radius_edge_ratio = 3.0,
 			      CGAL::parameters::edge_size = cell_size);
 
   std::cout << "Generating mesh" << std::endl;
-  dolfin::csg::C3t3 c3t3 = CGAL::make_mesh_3<dolfin::csg::C3t3>(domain, criteria,
+  dolfin::csg::C3t3 c3t3 = CGAL::make_mesh_3<dolfin::csg::C3t3>(*domain, criteria,
                                                 CGAL::parameters::no_perturb(),
                                                 CGAL::parameters::no_exude());
   // optimize mesh
