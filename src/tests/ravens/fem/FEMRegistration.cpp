@@ -7,6 +7,21 @@ NonRigidTransform FEMRegistration::constructTransform()
 	return NonRigidTransform();
 }
 
+void setfacet(tetgenio::facet *f, int a, int b, int c, int d)
+{
+	f->numberofpolygons = 1;
+	f->polygonlist = new tetgenio::polygon[f->numberofpolygons];
+	f->numberofholes = 0;
+	f->holelist = NULL;
+	tetgenio::polygon *p = &f->polygonlist[0];
+	p->numberofvertices = 4;
+	p->vertexlist = new int[p->numberofvertices];
+	p->vertexlist[0] = a;
+	p->vertexlist[1] = b;
+	p->vertexlist[2] = c;
+	p->vertexlist[3] = d;
+}
+
 dolfin::Mesh constructMesh(const SceneGeometry& a, const SceneGeometry& b,
 		double xmin, double ymin, double zmin, double xmax, double ymax, double zmax)
 {
@@ -48,70 +63,64 @@ dolfin::Mesh constructMesh(const SceneGeometry& a, const SceneGeometry& b,
 	in.pointlist[V + 10] = ymax;
 	in.pointlist[V + 11] = zmin;
 	// Fifth point:
+	in.pointlist[V + 12] = xmin;
+	in.pointlist[V + 13] = ymin;
+	in.pointlist[V + 14] = zmax;
+	// Sixth point:
+	in.pointlist[V + 15] = xmax;
+	in.pointlist[V + 16] = ymin;
+	in.pointlist[V + 17] = zmax;
+	// Seventh point:
+	in.pointlist[V + 18] = xmax;
+	in.pointlist[V + 19] = ymax;
+	in.pointlist[V + 20] = zmax;
+	// Eight point:
+	in.pointlist[V + 21] = xmin;
+	in.pointlist[V + 22] = ymax;
+	in.pointlist[V + 23] = zmax;
+
+	// Set the facets:
+	std::vector<Face> a_faces = a.get_faces();
+	std::vector<Face> b_faces = b.get_faces();
+	// The 6 is for the faces on the outside boundary
+	in.numberoffacets = a_faces.size() + b_faces.size() + 6;
+	in.facetlist = new tetgenio::facet[in.numberoffacets];
+	in.facetmarkerlist = new int[in.numberoffacets];
+	// Facets for the first object:
+	for(int i = 0; i < a_faces.size(); i++) {
+		tetgenio::facet *f = &in.facetlist[i];
+		setfacet(f, a_faces[i].corners[0],
+					a_faces[i].corners[1],
+					a_faces[i].corners[2],
+					a_faces[i].corners[3]);
+	}
+	// Facets for the second object:
+	int F = a_faces.size() + b_faces.size();
+	for(int i = 0; i < b_faces.size(); i++) {
+		tetgenio::facet *f = &in.facetlist[F + i];
+		setfacet(f, b_faces[i].corners[0],
+					b_faces[i].corners[1],
+					b_faces[i].corners[2],
+					b_faces[i].corners[3]);
+	}
+	// Facets for the boundary:
+	F = a_faces.size() + b_faces.size();
+	// bottom
+	setfacet(&in.facetlist[F], V, V+1, V+2, V+3);
+	// top
+	setfacet(&in.facetlist[F + 1], V+4, V+5, V+6, V+7);
+	// left
+	setfacet(&in.facetlist[F + 2], V, V+4, V+7, V+3);
+	// front
+	setfacet(&in.facetlist[F + 3], V, V+1, V+5, V+4);
+	// right
+	setfacet(&in.facetlist[F + 4], V+1, V+5, V+6, V+2);
+	// back
+	setfacet(&in.facetlist[F + 5], V+2, V+6, V+7, V+3);
+
 }
 
 Meshes FEMRegistration::constructMesh(const SceneGeometry& cloth1, const SceneGeometry& cloth2)
 {
-	tetgenio io;
 
-	Meshes meshes;
-	dolfin::csg::Exact_Polyhedron_3 standard_cloth_1 = load_off_file("/home/pcm/data/standard-geometry-cloth-1.off");
-	dolfin::csg::Exact_Polyhedron_3 standard_cloth_2 = load_off_file("/home/pcm/data/standard-geometry-cloth-2.off");
-	dolfin::csg::Exact_Polyhedron_3 cube = load_off_file("/home/pcm/data/cube.off");
-
-	std::cout << "after load" << std::endl;
-	std::cout << standard_cloth_1 << std::endl;
-	std::cout << "valid?" << std::endl;
-	std::cout << standard_cloth_1.is_valid() << std::endl;
-	std::cout << standard_cloth_2 << std::endl;
-	std::cout << "valid?" << std::endl;
-	std::cout << standard_cloth_2.is_valid() << std::endl;
-	std::cout << "after load" << std::endl;
-
-	double cell_size = 1.0;
-	bool detect_sharp_features = true;
-
-	// scale the outer box
-	double xmid = (xmin + xmax)/2;
-	double ymid = (ymin + ymax)/2;
-	double zmid = (zmin + zmax)/2;
-
-	std::cout << xmid << std::endl;
-	std::cout << ymid << std::endl;
-	std::cout << zmid << std::endl;
-
-	std::cout << "point 1" << std::endl;
-
-	//CGAL::Aff_transformation_3<dolfin::csg::Exact_Kernel> outer_scale(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0);
-	CGAL::Aff_transformation_3<dolfin::csg::Exact_Kernel> outer_scale(xmax - xmid, 0, 0, 0, 0, ymax - ymid, 0, 0, 0, 0, zmax - zmid, 0);
-	CGAL::Aff_transformation_3<dolfin::csg::Exact_Kernel> outer_trans(1, 0, 0, xmid, 0, 1, 0, ymid, 0, 0, 1, zmid);
-	std::transform(cube.points_begin(), cube.points_end(), cube.points_begin(), outer_trans * outer_scale);
-	//std::transform(cube.points_begin(), cube.points_end(), cube.points_begin(), outer_scale);
-
-	std::cout << "point 2" << std::endl;
-
-	dolfin::csg::Nef_polyhedron_3 Omega(cube);
-
-	std::cout << "point 3" << std::endl;
-
-	Omega -= standard_cloth_1;
-	std::cout << standard_cloth_1 << std::endl;
-	Omega -= standard_cloth_2;
-	std::cout << standard_cloth_2 << std::endl;
-
-	std::cout << "point 4" << std::endl;
-
-	dolfin::csg::Polyhedron_3 poly = nef_to_poly(Omega);
-	std::cout << "point 5" << std::endl;
-	generate(*meshes.domain_mesh, poly, cell_size);
-
-	std::cout << "point 6" << std::endl;
-
-	dolfin::plot(*meshes.domain_mesh, "mesh of the domain");
-	std::cout << "point 7" << std::endl;
-	dolfin::interactive(true);
-
-	std::cout << "point 8" << std::endl;
-
-	return meshes;
 }
