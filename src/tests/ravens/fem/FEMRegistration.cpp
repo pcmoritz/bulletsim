@@ -1,11 +1,13 @@
 #include "FEMRegistration.hpp"
 
+#include "mesh.hpp"
+
 dolfin::csg::Exact_Polyhedron_3 load_off_file(const char* file_name)
 {
 	dolfin::csg::Exact_Polyhedron_3 result;
 	std::cout << "reading file " << file_name << std::endl;
 	std::ifstream file(file_name);
-	file >> result;
+	// file >> result;
 	return result;
 }
 
@@ -18,9 +20,9 @@ dolfin::csg::Polyhedron_3 nef_to_poly(const dolfin::csg::Nef_polyhedron_3& nef)
 	return result;
 }
 
-Transform FEMRegistration::constructTransform()
+NonRigidTransform FEMRegistration::constructTransform()
 {
-	return Transform();
+	return NonRigidTransform();
 }
 
 Meshes FEMRegistration::constructMesh(const SceneGeometry& cloth1, const SceneGeometry& cloth2)
@@ -48,12 +50,9 @@ Meshes FEMRegistration::constructMesh(const SceneGeometry& cloth1, const SceneGe
 	Omega -= standard_cloth_2;
 
 	dolfin::csg::Polyhedron_3 poly = nef_to_poly(Omega);
-	dolfin::Mesh domain_mesh;
-	generate(domain_mesh, poly, cell_size);
+	generate(*meshes.domain_mesh, poly, cell_size);
 
-	meshes.domain_mesh = domain_mesh;
-
-	dolfin::plot(domain_mesh, "mesh of the domain");
+	dolfin::plot(*meshes.domain_mesh, "mesh of the domain");
 	dolfin::interactive(true);
 
 	return meshes;

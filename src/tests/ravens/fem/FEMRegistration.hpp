@@ -4,15 +4,25 @@
 #include "SceneGeometry.hpp"
 #include <vector>
 #include <btBulletDynamicsCommon.h>
-#include "mesh.hpp"
+#include <dolfin/mesh/Mesh.h>
 
-struct Transform {
+
+struct NonRigidTransform {
 	std::vector<btVector3> operator()(const std::vector<btVector3>& v);
 };
 
 struct Meshes {
-	dolfin::Mesh domain_mesh;
-	dolfin::Mesh range_mesh;
+	dolfin::Mesh* domain_mesh;
+	dolfin::Mesh* range_mesh;
+	Meshes() {
+		domain_mesh = new dolfin::Mesh();
+		range_mesh = new dolfin::Mesh();
+	}
+	~Meshes() {
+		std::cout << "deleting the meshes" << std::endl;
+		delete domain_mesh;
+		delete range_mesh;
+	}
 };
 
 class FEMRegistration
@@ -31,7 +41,7 @@ public:
 		zmax = a.getZ();
 	}
 	Meshes constructMesh(const SceneGeometry& cloth1, const SceneGeometry& cloth2);
-	Transform constructTransform();
+	NonRigidTransform constructTransform();
 };
 
 #endif

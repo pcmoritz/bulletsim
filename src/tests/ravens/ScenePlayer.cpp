@@ -391,8 +391,8 @@ void ScenePlayer::setupNewSegment() {
 	    msg << "Writing to file ~/geometry.off";
 	    cout << colorize(msg.str(), "yellow", true) << endl;
 
-	    // FEMRegistration registration(btVector3(-15.0, -15.0, 5.0), btVector3(15.0, 15.0, 30.0));
-	    // registration.constructMesh(SceneGeometry(), SceneGeometry());
+	    FEMRegistration registration(btVector3(-15.0, -15.0, 5.0), btVector3(15.0, 15.0, 30.0));
+	    registration.constructMesh(SceneGeometry(), SceneGeometry());
 
 		// warp the joints using LFD/ Trajopt
 		vector<vector<double> > warpedJoints;

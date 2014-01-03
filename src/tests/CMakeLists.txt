@@ -90,6 +90,11 @@ include_directories (${Boost_INCLUDE_DIRS})
 find_package(PythonLibs)
 include_directories (${PYTHON_INCLUDE_DIRS})
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/ravens/fem/modules/")
+
+find_package(CGAL)
+
+link_directories("/usr/lib/")
 
 add_executable(ravens ravens/test_ravens.cpp
 					  ravens/RavensRigidBodyAction.cpp
@@ -105,7 +110,7 @@ add_executable(ravens ravens/test_ravens.cpp
                       ravens/ScenePlayer.cpp
                       ravens/BoxCloth.cpp)
 
-target_link_libraries(ravens simulation robots lfd fem)
+target_link_libraries(ravens ${CGAL_LIBRARIES} simulation robots lfd fem CGAL)
 add_executable(test_lfd_wrapper ravens/test_lfd_wrapper.cpp )
 target_link_libraries(test_lfd_wrapper simulation lfd)
 
