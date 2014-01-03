@@ -1,5 +1,7 @@
 #include "SceneGeometry.hpp"
 #include <fstream>
+#include <iostream>
+#include <cstdlib>
 
 std::ostream& operator<<(std::ostream& out, const SceneGeometry& g) {
 	// output header
@@ -34,7 +36,7 @@ void SceneGeometry::append(const SceneGeometry& geometry)
 	}
 }
 
-void SceneGeometry::load(const std::string& file_name) {
+SceneGeometry SceneGeometry::load(const std::string& file_name) {
 	std::ifstream file;
 	file.open(file_name.c_str());
 	if(!file.is_open()) {
@@ -47,13 +49,47 @@ void SceneGeometry::load(const std::string& file_name) {
 		std::cout << "File is not an OFF file" << std::endl;
 		std::exit(1);
 	}
-	int numVert = 0;
-	int numFaces = 0;
-	int numEdges = 0;
-	std::string token;
-	while(file >> token) {
 
+	SceneGeometry g;
+
+	std::string token;
+
+	file >> token;
+	int numVert = std::atoi(token.c_str());
+	file >> token;
+	int numFaces = std::atoi(token.c_str());
+	file >> token;
+	int numEdges = std::atoi(token.c_str());
+
+	std::string coord0_tok, coord1_tok, coord2_tok;
+	double coord0, coord1, coord2;
+	for(int i = 1; i < numVert; i++) {
+	  file >> coord0_tok;
+	  file >> coord1_tok;
+	  file >> coord2_tok;
+	  coord0 = std::atof(coord0_tok.c_str());
+	  coord1 = std::atof(coord1_tok.c_str());
+	  coord2 = std::atof(coord2_tok.c_str());
+	  
+	  g.add_vertex(btVector3(coord0, coord1, coord2));
 	}
+
+	std::string ind0_tok, ind1_tok, ind2_tok, ind3_tok, n_vertices;
+	size_t ind0, ind1, ind2, ind3;
+	for(int i = 1; i < numFaces; i++) {
+	  file >> n_vertices;
+	  file >> ind0_tok;
+	  file >> ind1_tok;
+	  file >> ind2_tok;
+	  file >> ind3_tok;
+	  ind0 = std::atoi(ind0_tok.c_str());
+	  ind1 = std::atoi(ind1_tok.c_str());
+	  ind2 = std::atoi(ind2_tok.c_str());
+	  ind3 = std::atoi(ind3_tok.c_str());
+
+	  g.add_face(ind0, ind1, ind2, ind3);
+	}
+
 	file.close();
 }
 

@@ -37,9 +37,9 @@ public:
 	}
 	void append(const SceneGeometry& geometry);
 
-	void load(const std::string& file_name);
+	SceneGeometry load(const std::string& file_name);
 
-    bool on_boundary(btVector3 p, const SceneGeometry& g);
+	bool on_boundary(btVector3 p, const SceneGeometry& g);
 
 };
 
