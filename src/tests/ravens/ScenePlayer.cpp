@@ -398,8 +398,8 @@ void ScenePlayer::setupNewSegment() {
 		SceneGeometry first = load("/home/pcm/geometry1.off");
 		SceneGeometry second = load("/home/pcm/geometry2.off");
 
-		first.set_center(btVector3(3, -2, 16.0));
-		second.set_center(btVector3(-3, -2, 16.0));
+		first.set_center(btVector3(4, -1, 16));
+		second.set_center(btVector3(-4.49, -1.85, 16.9));
 
 	    tetgenio tet = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
 
@@ -411,6 +411,9 @@ void ScenePlayer::setupNewSegment() {
 
 	    SceneGeometry first_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
 	    SceneGeometry second_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
+
+	    first_standard.set_center(btVector3(4, -1, 16));
+	    second_standard.set_center(btVector3(-3, -1, 16));
 
 	    // YOUR CODE HERE
 	    using namespace dolfin;
