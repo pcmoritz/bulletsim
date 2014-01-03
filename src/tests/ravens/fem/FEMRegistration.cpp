@@ -40,20 +40,34 @@ Meshes FEMRegistration::constructMesh(const SceneGeometry& cloth1, const SceneGe
 	double ymid = (ymin + ymax)/2;
 	double zmid = (zmin + zmax)/2;
 
+	std::cout << "point 1" << std::endl;
+
 	CGAL::Aff_transformation_3<dolfin::csg::Exact_Kernel> outer_scale(xmax - xmid, 0, 0, 0, 0, ymax - ymid, 0, 0, 0, 0, zmax - zmid, 0);
 	CGAL::Aff_transformation_3<dolfin::csg::Exact_Kernel> outer_trans(1, 0, 0, xmid, 0, 1, 0, ymid, 0, 0, 1, zmid);
 	std::transform(cube.points_begin(), cube.points_end(), cube.points_begin(), outer_trans * outer_scale);
 
+	std::cout << "point 2" << std::endl;
+
 	dolfin::csg::Nef_polyhedron_3 Omega(cube);
+
+	std::cout << "point 3" << std::endl;
 
 	Omega -= standard_cloth_1;
 	Omega -= standard_cloth_2;
 
+	std::cout << "point 4" << std::endl;
+
 	dolfin::csg::Polyhedron_3 poly = nef_to_poly(Omega);
+	std::cout << "point 5" << std::endl;
 	generate(*meshes.domain_mesh, poly, cell_size);
 
+	std::cout << "point 6" << std::endl;
+
 	dolfin::plot(*meshes.domain_mesh, "mesh of the domain");
+	std::cout << "point 7" << std::endl;
 	dolfin::interactive(true);
+
+	std::cout << "point 8" << std::endl;
 
 	return meshes;
 }
