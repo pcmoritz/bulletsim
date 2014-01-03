@@ -29,8 +29,8 @@ find_package(Boost REQUIRED COMPONENTS thread)
 
 # link_directories("/usr/lib/")
 
-add_executable(test_cgal mesh.cpp main.cpp)
-target_link_libraries(test_cgal  ${CGAL_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} CGAL)
+add_executable(main main.cpp SceneGeometry.cpp FEMRegistration.cpp)
+target_link_libraries(main  ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} CGAL tetgen)
 
 add_library(fem SceneGeometry.cpp FEMRegistration.cpp mesh.cpp)
 target_link_libraries(fem  ${CGAL_LIBRARIES} ${DOLFIN_LIBRARIES})

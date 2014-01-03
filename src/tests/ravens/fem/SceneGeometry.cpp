@@ -36,7 +36,7 @@ void SceneGeometry::append(const SceneGeometry& geometry)
 	}
 }
 
-SceneGeometry SceneGeometry::load(const std::string& file_name) {
+SceneGeometry load(const std::string& file_name) {
 	std::ifstream file;
 	file.open(file_name.c_str());
 	if(!file.is_open()) {
@@ -91,6 +91,8 @@ SceneGeometry SceneGeometry::load(const std::string& file_name) {
 	}
 
 	file.close();
+
+	return g;
 }
 
 bool SceneGeometry::on_boundary(btVector3 p, const SceneGeometry& g)
