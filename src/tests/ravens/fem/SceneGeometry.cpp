@@ -64,7 +64,7 @@ SceneGeometry load(const std::string& file_name) {
 
 	std::string coord0_tok, coord1_tok, coord2_tok;
 	double coord0, coord1, coord2;
-	for(int i = 1; i < numVert; i++) {
+	for(int i = 0; i < numVert; i++) {
 	  file >> coord0_tok;
 	  file >> coord1_tok;
 	  file >> coord2_tok;
@@ -77,7 +77,7 @@ SceneGeometry load(const std::string& file_name) {
 
 	std::string ind0_tok, ind1_tok, ind2_tok, ind3_tok, n_vertices;
 	size_t ind0, ind1, ind2, ind3;
-	for(int i = 1; i < numFaces; i++) {
+	for(int i = 0; i < numFaces; i++) {
 	  file >> n_vertices;
 	  file >> ind0_tok;
 	  file >> ind1_tok;
@@ -110,18 +110,23 @@ bool on_boundary(btVector3 p, const SceneGeometry& g)
 
     // test if p and c0, c1, c2 lie in same plane
     btVector3 perp = ((c1 - c0).cross(c2 - c0)).normalize();
+
+    //btVector3 temp = c2;
+    //std::cout << temp.getX() << " " << temp.getY() << " " << temp.getZ() << std::endl;
+
     btScalar dist_from_plane = perp.dot(p - c0);
+    //std::cout << dist_from_plane << std::endl;
     if (dist_from_plane > tol || dist_from_plane < -tol)
       continue;
     
     // test if p and c0 lie on the same side of the line c1c2
-    if (((p - c1).cross(c2 - c1)).dot((c0 - c1).cross(c2 - c1)) < 0)
+    if (((p - c1).cross(c2 - c1)).dot((c0 - c1).cross(c2 - c1)) < -tol)
       continue;
     // test if p and c1 lie on the same side of the line c0c2
-    if (((p - c0).cross(c2 - c0)).dot((c1 - c0).cross(c2 - c0)) < 0)
+    if (((p - c0).cross(c2 - c0)).dot((c1 - c0).cross(c2 - c0)) < -tol)
       continue;
     // test if p and c2 lie on the same side of the line c0c1
-    if (((p - c0).cross(c1 - c0)).dot((c2 - c0).cross(c1 - c0)) < 0)
+    if (((p - c0).cross(c1 - c0)).dot((c2 - c0).cross(c1 - c0)) < -tol)
       continue;
 
     return true;
@@ -139,13 +144,13 @@ bool on_boundary(btVector3 p, const SceneGeometry& g)
       continue;
 
     // test if p and c2 lie on the same side of the line c3c0
-    if (((p - c3).cross(c0 - c3)).dot((c2 - c3).cross(c0 - c3)) < 0)
+    if (((p - c3).cross(c0 - c3)).dot((c2 - c3).cross(c0 - c3)) < -tol)
       continue;
     // test if p and c3 lie on the same side of the line c2c0
-    if (((p - c2).cross(c0 - c2)).dot((c3 - c2).cross(c0 - c2)) < 0)
+    if (((p - c2).cross(c0 - c2)).dot((c3 - c2).cross(c0 - c2)) < -tol)
       continue;
     // test if p and c0 lie on the same side of the line c2c3
-    if (((p - c2).cross(c3 - c2)).dot((c0 - c2).cross(c3 - c2)) < 0)
+    if (((p - c2).cross(c3 - c2)).dot((c0 - c2).cross(c3 - c2)) < -tol)
       continue;
 
     return true;
