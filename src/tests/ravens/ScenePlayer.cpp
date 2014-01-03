@@ -382,17 +382,31 @@ void ScenePlayer::setupNewSegment() {
 		// Export the position of the suturing pad
 		std::pair<SceneGeometry, SceneGeometry> geometry = scene.getSceneGeometry();
 		ofstream outfile;
-		outfile.open ("/home/pcm/geometry.off");
+		outfile.open ("/home/pcm/geometry1.off");
 		outfile << "OFF";
 		outfile << geometry.first << std::endl;
 		outfile.close();
 
+		outfile.open ("/home/pcm/geometry2.off");
+		outfile << "OFF";
+		outfile << geometry.second << std::endl;
+		outfile.close();
+
+		SceneGeometry first = load("/home/pcm/geometry1.off");
+		SceneGeometry second = load("/home/pcm/geometry2.off");
+
 		stringstream msg;
-	    msg << "Writing to file ~/geometry.off";
+	    msg << "Writing to file ~/geometry<k>.off";
 	    cout << colorize(msg.str(), "yellow", true) << endl;
 
-	    FEMRegistration registration(btVector3(-15.0, -15.0, 5.0), btVector3(15.0, 15.0, 30.0));
-	    registration.constructMesh(SceneGeometry(), SceneGeometry());
+		first.set_center(btVector3(3, -2, 16.0));
+		second.set_center(btVector3(-3, -2, 16.0));
+
+	    tetgenio tetmesh = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
+	    // dolfin::Mesh mesh;
+	    // build_mesh(tetmesh, mesh); // should work
+
+	    // YOUR CODE HERE
 
 		// warp the joints using LFD/ Trajopt
 		vector<vector<double> > warpedJoints;

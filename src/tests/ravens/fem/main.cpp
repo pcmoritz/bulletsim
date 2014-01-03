@@ -4,10 +4,17 @@
 #include "SceneGeometry.hpp"
 
 int main() {
-	SceneGeometry cube = load("/home/pcm/data/cube.off");
-	//SceneGeometry first = load("/home/pcm/data/standard-geometry-cloth-1.off");
-	//SceneGeometry second = load("/home/pcm/data/standard-geometry-cloth-2.off");
-	
+	SceneGeometry cube = load("/home/pcm/Dropbox/data/cube.off");
+	// SceneGeometry first = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
+	// SceneGeometry second = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
+
+	SceneGeometry first = load("/home/pcm/geometry1.off");
+	SceneGeometry second = load("/home/pcm/geometry2.off");
+
+	first.set_center(btVector3(3, -2, 16.0));
+	second.set_center(btVector3(-3, -2, 16.0));
+
+	/*
 	std::vector<btVector3> vs = cube.get_vertices();
 	for (int i = 0; i < vs.size(); i++) {
 	  btVector3 temp = vs[i];
@@ -28,4 +35,7 @@ int main() {
 	std::cout << on_boundary(btVector3(1.0, 0.0, 0.0), cube) << std::endl;
 	std::cout << on_boundary(btVector3(2.0, 0.0, 0.0), cube) << std::endl;
 	std::cout << on_boundary(btVector3(-1.0, -1.0, -1.0), cube) << std::endl;
+	*/
+
+	tetgenio tet = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
 }

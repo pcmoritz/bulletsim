@@ -40,6 +40,6 @@ include_directories (${BULLET_INCLUDE_DIRS})
 add_executable(main main.cpp SceneGeometry.cpp FEMRegistration.cpp)
 target_link_libraries(main  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} TetGen)
 
-add_library(fem SceneGeometry.cpp FEMRegistration.cpp mesh.cpp)
-target_link_libraries(fem  ${CGAL_LIBRARIES} ${DOLFIN_LIBRARIES})
+add_library(fem SceneGeometry.cpp FEMRegistration.cpp)
+target_link_libraries(fem  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} TetGen)
 

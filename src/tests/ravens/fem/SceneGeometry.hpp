@@ -19,6 +19,7 @@ struct Face {
 };
 
 class SceneGeometry {
+	btVector3 center;
 	std::vector<btVector3> vertices;
 	std::vector<Face> faces;
 	friend std::ostream& operator<<(std::ostream& out, const SceneGeometry& g);
@@ -28,6 +29,12 @@ public:
 	}
 	void add_face(std::size_t v1, std::size_t v2, std::size_t v3, std::size_t v4) {
 		faces.push_back(Face(v1, v2, v3, v4));
+	}
+	void set_center(btVector3 center) {
+		this->center = center;
+	}
+	btVector3 get_center() const {
+		return center;
 	}
 	std::vector<btVector3> get_vertices() const {
 		return vertices;

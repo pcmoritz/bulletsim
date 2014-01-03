@@ -7,6 +7,9 @@
 
 #include <dolfin/mesh/Mesh.h>
 
+#define TETLIBRARY
+#include "TetGen/tetgen.h"
+
 
 struct NonRigidTransform {
 	std::vector<btVector3> operator()(const std::vector<btVector3>& v);
@@ -41,8 +44,13 @@ public:
 		ymax = b.getY();
 		zmax = b.getZ();
 	}
-	Meshes constructMesh(const SceneGeometry& cloth1, const SceneGeometry& cloth2);
+
 	NonRigidTransform constructTransform();
 };
+
+tetgenio constructMesh(const SceneGeometry& cloth1, const SceneGeometry& cloth2,
+		double xmin, double ymin, double zmin, double xmax, double ymax, double zmax);
+
+void build_mesh(const tetgenio& m, dolfin::Mesh& mesh);
 
 #endif
