@@ -15,6 +15,16 @@
 #include "fem/SceneGeometry.hpp"
 #include "fem/FEMRegistration.hpp"
 
+#include "fem/model.h"
+#include <dolfin.h>
+#include <dolfin/plot/plot.h>
+#include <dolfin/common/MPI.h>
+#include <dolfin/log/log.h>
+#include <dolfin/mesh/Mesh.h>
+#include <dolfin/mesh/MeshEditor.h>
+#include <dolfin/mesh/MeshPartitioning.h>
+
+
 using namespace std;
 
 
@@ -395,18 +405,23 @@ void ScenePlayer::setupNewSegment() {
 		SceneGeometry first = load("/home/pcm/geometry1.off");
 		SceneGeometry second = load("/home/pcm/geometry2.off");
 
-		stringstream msg;
-	    msg << "Writing to file ~/geometry<k>.off";
-	    cout << colorize(msg.str(), "yellow", true) << endl;
-
 		first.set_center(btVector3(3, -2, 16.0));
 		second.set_center(btVector3(-3, -2, 16.0));
 
-	    tetgenio tetmesh = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
-	    // dolfin::Mesh mesh;
-	    // build_mesh(tetmesh, mesh); // should work
+	    tetgenio tet = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
+
+	    dolfin::Mesh mesh;
+	    build_mesh(tet, mesh);
+
+	    dolfin::plot(mesh, "mesh of the new situation");
+	    dolfin::interactive(true);
+
+	    SceneGeometry first_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
+	    SceneGeometry second_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
 
 	    // YOUR CODE HERE
+	    using namespace dolfin;
+
 
 		// warp the joints using LFD/ Trajopt
 		vector<vector<double> > warpedJoints;

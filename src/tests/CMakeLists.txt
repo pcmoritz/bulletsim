@@ -110,7 +110,7 @@ add_executable(ravens ravens/test_ravens.cpp
                       ravens/ScenePlayer.cpp
                       ravens/BoxCloth.cpp)
 
-target_link_libraries(ravens ${CGAL_LIBRARIES} simulation robots lfd fem CGAL)
+target_link_libraries(ravens ${CGAL_LIBRARIES} simulation robots lfd fem CGAL TetGen)
 add_executable(test_lfd_wrapper ravens/test_lfd_wrapper.cpp )
 target_link_libraries(test_lfd_wrapper simulation lfd)
 

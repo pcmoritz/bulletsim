@@ -10573,7 +10573,7 @@ void tetgenmesh::transfernodes()
   z = zmax - zmin;
   longest = sqrt(x * x + y * y + z * z);
   if (longest == 0.0) {
-    printf("Error:  The point set is trivial.\n");
+    printf("Error:  The point set is trivial (Version 1.5.0).\n");
     terminatetetgen(this, 3);
   }
 
