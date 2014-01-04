@@ -10,6 +10,9 @@
 #define TETLIBRARY
 #endif
 #include "tetgen/tetgen.h"
+#undef REAL
+
+typedef double REAL;
 
 namespace tetwrap {
 
@@ -35,7 +38,8 @@ class facet {
   friend std::istream& operator>>(std::istream& in, facet& f);
   std::vector<std::size_t> vertices;
 public:
-  std::size_t vertex(std::size_t index) { return vertices[index]; }
+  std::size_t vertex(std::size_t index) const { return vertices[index]; }
+  std::size_t num_vertices() { return vertices.size(); }
   void add_vertex(std::size_t value) {vertices.push_back(value); }
 };
 
@@ -72,6 +76,10 @@ surface read_off(std::istream& input);
 
 /* Generate input for mesh generation  */
 tetgenio generate_input(const geometry& geometry);
+
+/* Generate point in the interior; beware: this operation is expensive,
+ * the whole region is triangulated */
+point get_interior_point(const surface& surface);
 
 }
 

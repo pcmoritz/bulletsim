@@ -31,15 +31,15 @@ find_package(Boost REQUIRED COMPONENTS thread)
 
 # link_directories("/usr/lib/")
 
-add_subdirectory(TetGen)
+add_subdirectory(TetWrap)
 
 find_package(Bullet)
 
 include_directories (${BULLET_INCLUDE_DIRS})
 
 add_executable(main main.cpp SceneGeometry.cpp FEMRegistration.cpp)
-target_link_libraries(main  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} TetGen)
+target_link_libraries(main  ${BULLET_LIBRARIES} ${Boost_LIBRARIES} tetwrap)
 
 add_library(fem SceneGeometry.cpp FEMRegistration.cpp)
-target_link_libraries(fem  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} TetGen)
+target_link_libraries(fem  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} tetwrap)
 

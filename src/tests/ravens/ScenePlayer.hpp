@@ -103,21 +103,4 @@ public :
 	void playCallback();
 };
 
-// Evaluate the transformation from the boundary of one cube to the
-// boundary of a transformed cube.
-struct ObjectToObject : public dolfin::Expression
-{
-  btTransform transform;
-  ObjectToObject (const btTransform& transform) : dolfin::Expression(3)
-  {
-	  this->transform = transform;
-  }
-  void eval(dolfin::Array<double>& values, const dolfin::Array<double>& x) const
-  {
-	btVector3 v(x[0], x[1], x[2]);
-	btVector3 w = transform(v);
-    values[0] = w[0];
-    values[1] = w[1];
-    values[2] = w[3];
-  }
-};
+

@@ -94,6 +94,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/ravens/fem/modul
 
 find_package(CGAL)
 
+find_package(DOLFIN)
+
+include_directories(${DOLFIN_INCLUDE_DIRS})
+
+
 link_directories("/usr/lib/")
 
 add_executable(ravens ravens/test_ravens.cpp
@@ -110,7 +115,7 @@ add_executable(ravens ravens/test_ravens.cpp
                       ravens/ScenePlayer.cpp
                       ravens/BoxCloth.cpp)
 
-target_link_libraries(ravens ${CGAL_LIBRARIES} simulation robots lfd fem CGAL TetGen)
+target_link_libraries(ravens simulation robots lfd fem tetwrap ${DOLFIN_LIBRARIES})
 add_executable(test_lfd_wrapper ravens/test_lfd_wrapper.cpp )
 target_link_libraries(test_lfd_wrapper simulation lfd)
 

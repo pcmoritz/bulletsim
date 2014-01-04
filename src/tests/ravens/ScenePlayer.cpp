@@ -17,6 +17,16 @@
 
 #include "fem/model.h"
 
+#include <dolfin.h>
+#include <dolfin/common/MPI.h>
+#include <dolfin/log/log.h>
+#include <dolfin/mesh/Mesh.h>
+#include <dolfin/mesh/MeshEditor.h>
+#include <dolfin/mesh/MeshPartitioning.h>
+
+#include <dolfin/plot/plot.h>
+
+
 
 using namespace std;
 
@@ -398,9 +408,6 @@ void ScenePlayer::setupNewSegment() {
 		SceneGeometry first = load("/home/pcm/geometry1.off");
 		SceneGeometry second = load("/home/pcm/geometry2.off");
 
-		first.set_center(btVector3(4, -1, 16));
-		second.set_center(btVector3(-4.49, -1.85, 16.9));
-
 	    tetgenio tet = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
 
 	    dolfin::Mesh mesh;
@@ -412,14 +419,18 @@ void ScenePlayer::setupNewSegment() {
 	    SceneGeometry first_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
 	    SceneGeometry second_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
 
-	    first_standard.set_center(btVector3(4, -1, 16));
-	    second_standard.set_center(btVector3(-3, -1, 16));
-
 	    // YOUR CODE HERE
 	    using namespace dolfin;
 
+	    double xmin = -15.0;
+	    double ymin = -15.0;
+	    double zmin = 5.0;
+	    double xmax = 15.0;
+	    double ymax = 15.0;
+	    double zmax = 30.0;
+
 	    Mesh standard_mesh;
-	    tetgenio tet_standard = constructMesh(first_standard, second_standard, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
+	    tetgenio tet_standard = constructMesh(first_standard, second_standard, xmin, ymin, zmin, xmax, ymax, zmax);
 	    build_mesh(tet_standard, standard_mesh);
 
 	    std::cout << "second mesh built" << std::endl;
@@ -427,10 +438,52 @@ void ScenePlayer::setupNewSegment() {
 	    dolfin::plot(standard_mesh, "mesh of standard situation");
 	    dolfin::interactive(true);
 
+	    SceneGeometry box = from_tetwrap(make_outer_surface(xmin, ymin, zmin, xmax, ymax, zmax));
+
 	    model::FunctionSpace V(standard_mesh);
 
 	    ObjectToObject left_o2o(btTransform::getIdentity());
+	    ObjectToObject outer_o2o(btTransform::getIdentity());
 	    ObjectToObject right_o2o(second.get_transform());
+
+	    ClothDomain left(first, "left");
+	    ClothDomain right(second, "right");
+	    ClothDomain outer(box, "outer");
+
+	    // Create Dirichlet boundary conditions
+	      DirichletBC bci1(V, left_o2o, left);
+	      DirichletBC bci2(V, right_o2o, right);
+	      DirichletBC bco(V, outer_o2o, outer);
+	      std::vector<const BoundaryCondition*> bcs;
+	      bcs.push_back(&bci1);
+	      bcs.push_back(&bci2);
+	      bcs.push_back(&bco);
+
+	      // Define source and boundary traction functions
+	      Constant B(0.0, -0.5, 0.0);
+	      Constant T(0.1,  0.0, 0.0);
+
+	      // Define solution function
+	      Function u(V);
+
+	      // Set material parameters
+	      const double E  = 10.0;
+	      const double nu = 0.3;
+	      Constant mu(E/(2*(1 + nu)));
+	      Constant lambda(E*nu/((1 + nu)*(1 - 2*nu)));
+
+	      // Create (linear) form defining (nonlinear) variational problem
+	      model::ResidualForm F(V);
+	      F.mu = mu; F.lmbda = lambda; F.B = B; F.T = T; F.u = u;
+
+	      // Create jacobian dF = F' (for use in nonlinear solver).
+	      model::JacobianForm J(V, V);
+	      J.mu = mu; J.lmbda = lambda; J.u = u;
+
+	      std::cout << "start solving the system" << std::endl;
+
+	      // Solve nonlinear variational problem F(u; v) = 0
+	      solve(F == 0, u, bcs, J);
 
 		// warp the joints using LFD/ Trajopt
 		vector<vector<double> > warpedJoints;

@@ -158,3 +158,15 @@ bool on_boundary(btVector3 p, const SceneGeometry& g)
 
   return false;
 }
+
+SceneGeometry from_tetwrap(const tetwrap::surface& s) {
+	SceneGeometry geometry;
+	for(int i = 0; i < s.num_vertices(); i++) {
+		tetwrap::point p = s.vertex(i);
+		geometry.add_vertex(btVector3(p.x(), p.y(), p.z()));
+	}
+	for(int i = 0; i < s.num_facets(); i++) {
+		geometry.add_face(s.face(i).vertex(0), s.face(i).vertex(1), s.face(i).vertex(2), s.face(i).vertex(3));
+	}
+	return geometry;
+}

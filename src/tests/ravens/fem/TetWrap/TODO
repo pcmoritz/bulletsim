@@ -1,0 +1,3 @@
+All the internal STL containers could be replaced by tetgen's data structures,
+so that we don't have to store everything in memory twice. However, the PCL
+data strucures are typically small, so this is not an issue most of the times. 

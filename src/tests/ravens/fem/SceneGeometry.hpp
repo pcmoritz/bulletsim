@@ -7,6 +7,7 @@
 #include <vector>
 #include <btBulletDynamicsCommon.h>
 #include <ostream>
+#include "TetWrap/tetwrap.hpp"
 
 struct Face {
 	std::size_t corners[4];
@@ -37,18 +38,14 @@ public:
 	void add_face(std::size_t v1, std::size_t v2, std::size_t v3, std::size_t v4) {
 		faces.push_back(Face(v1, v2, v3, v4));
 	}
-	void set_center(btVector3 center) {
-		this->center = center;
-	}
+
 	void set_transform(const btTransform& transform) {
 		this->transform = transform;
 	}
 	btTransform get_transform() {
 		return transform;
 	}
-	btVector3 get_center() const {
-		return center;
-	}
+
 	std::vector<btVector3> get_vertices() const {
 		return vertices;
 	}
@@ -60,5 +57,7 @@ public:
 
 SceneGeometry load(const std::string& file_name);
 bool on_boundary(btVector3 p, const SceneGeometry& g);
+SceneGeometry from_tetwrap(const tetwrap::surface& s);
+Face from_tetwrap(const tetwrap::facet& f);
 
 #endif
