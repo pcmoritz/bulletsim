@@ -350,7 +350,7 @@ public:
 	void testGrasping();
 
 	/* Get a description of the suturing pads in the OFF file format */
-	std::pair<SceneGeometry, SceneGeometry> getSceneGeometry();
+	std::pair<SceneGeometry, SceneGeometry> getSceneGeometry(bool transformed);
 };
 
 

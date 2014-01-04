@@ -22,8 +22,15 @@ class SceneGeometry {
 	btVector3 center;
 	std::vector<btVector3> vertices;
 	std::vector<Face> faces;
+	btTransform transform; // usually, this is just ignored
 	friend std::ostream& operator<<(std::ostream& out, const SceneGeometry& g);
 public:
+	// SceneGeometry(const btTransform& transform) {
+	//	this->transform = transform;
+	// }
+	SceneGeometry() {
+		this->transform = btTransform::getIdentity();
+	}
 	void add_vertex(btVector3 v) {
 		vertices.push_back(v);
 	}
@@ -32,6 +39,12 @@ public:
 	}
 	void set_center(btVector3 center) {
 		this->center = center;
+	}
+	void set_transform(const btTransform& transform) {
+		this->transform = transform;
+	}
+	btTransform get_transform() {
+		return transform;
 	}
 	btVector3 get_center() const {
 		return center;

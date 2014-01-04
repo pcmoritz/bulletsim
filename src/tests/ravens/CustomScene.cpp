@@ -1215,8 +1215,11 @@ void CustomScene::testTrajectory2() {
 	}
 }
 
-std::pair<SceneGeometry, SceneGeometry> CustomScene::getSceneGeometry() {
+std::pair<SceneGeometry, SceneGeometry> CustomScene::getSceneGeometry(bool transformed) {
 	SceneGeometry g = cloth1->getBoxClothGeometry();
 	SceneGeometry h = cloth2->getBoxClothGeometry();
+	if(transformed) {
+		h.set_transform(cloth2->rot);
+	}
 	return std::make_pair(g, h);
 }

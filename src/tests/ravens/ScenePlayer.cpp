@@ -383,7 +383,7 @@ void ScenePlayer::setupNewSegment() {
 		}
 
 		// Export the position of the suturing pad
-		std::pair<SceneGeometry, SceneGeometry> geometry = scene.getSceneGeometry();
+		std::pair<SceneGeometry, SceneGeometry> geometry = scene.getSceneGeometry(true);
 		ofstream outfile;
 		outfile.open ("/home/pcm/geometry1.off");
 		outfile << "OFF";
@@ -425,6 +425,9 @@ void ScenePlayer::setupNewSegment() {
 	    dolfin::interactive(true);
 
 	    model::FunctionSpace V(standard_mesh);
+
+	    ObjectToObject left_o2o(btTransform::getIdentity());
+	    ObjectToObject right_o2o(second.get_transform());
 
 		// warp the joints using LFD/ Trajopt
 		vector<vector<double> > warpedJoints;

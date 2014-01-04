@@ -105,19 +105,19 @@ public :
 
 // Evaluate the transformation from the boundary of one cube to the
 // boundary of a transformed cube.
-struct ObjectToObject : public Expression
+struct ObjectToObject : public dolfin::Expression
 {
-  Aff_trans_3 first_cube;
-  Aff_trans_3 second_cube;
-  CubeToCube (const Aff_trans_3& a, const Aff_trans_3& b)
-    : Expression(3), first_cube(a), second_cube(b) {}
-  void eval(Array<double>& values, const Array<double>& x) const
+  btTransform transform;
+  ObjectToObject (const btTransform& transform) : dolfin::Expression(3)
   {
-    IK_to_EK to_exact;
-    csg::Exact_Point_3 p(to_exact(x[0]), to_exact(x[1]), to_exact(x[2]));
-    (second_cube * first_cube.inverse())(p);
-    values[0] = CGAL::to_double(p[0]);
-    values[1] = CGAL::to_double(p[1]);
-    values[2] = CGAL::to_double(p[2]);
+	  this->transform = transform;
+  }
+  void eval(dolfin::Array<double>& values, const dolfin::Array<double>& x) const
+  {
+	btVector3 v(x[0], x[1], x[2]);
+	btVector3 w = transform(v);
+    values[0] = w[0];
+    values[1] = w[1];
+    values[2] = w[3];
   }
 };

@@ -131,10 +131,10 @@ tetgenio constructMesh(const SceneGeometry& a, const SceneGeometry& b,
 	in.holelist = new REAL[in.numberofholes * 3];
 	in.holelist[0] = a.get_center().getX();
 	in.holelist[1] = a.get_center().getY();
-	in.holelist[3] = a.get_center().getZ();
-	in.holelist[4] = b.get_center().getX();
-	in.holelist[5] = b.get_center().getY();
-	in.holelist[6] = b.get_center().getZ();
+	in.holelist[2] = a.get_center().getZ();
+	in.holelist[3] = b.get_center().getX();
+	in.holelist[4] = b.get_center().getY();
+	in.holelist[5] = b.get_center().getZ();
 
 	// char in_name[] = "/home/pcm/Dropbox/data/testin";
 	// in.save_nodes(in_name);
