@@ -92,8 +92,6 @@ include_directories (${PYTHON_INCLUDE_DIRS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/ravens/fem/modules/")
 
-find_package(CGAL)
-
 find_package(DOLFIN)
 
 include_directories(${DOLFIN_INCLUDE_DIRS})

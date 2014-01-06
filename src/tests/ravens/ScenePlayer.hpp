@@ -59,6 +59,8 @@ class ScenePlayer {
 	std::vector<std::vector<double> > rjoints;
 	double playbackStartTime;
 
+	dolfin::Function* transform;
+
 	// if we should look at all the demos in the library and
 	// find the one which matches the current setting the most
 	bool findClosestDemo;
@@ -72,7 +74,7 @@ class ScenePlayer {
 	 *  Note: Only the first segment of a demo in the library is used to calculate the cost.
 	 *
 	 *  This is done iff findClosestDemo is true. Else getCurrentPlayNumber is used. */
-	int getClosestDemoNum();
+	int getClosestDemoNum(dolfin::Function* u);
 
 	/** Returns a list of the demo numbers in the demo-lib file.*/
 	std::vector<int> readDemoLibFile();

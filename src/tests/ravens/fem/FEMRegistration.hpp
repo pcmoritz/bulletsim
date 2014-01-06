@@ -6,8 +6,10 @@
 #include <btBulletDynamicsCommon.h>
 
 #include <dolfin/mesh/Mesh.h>
+#include <dolfin/mesh/Face.h>
 
 #include "TetWrap/tetwrap.hpp"
+
 
 
 struct NonRigidTransform {
@@ -59,12 +61,15 @@ struct ObjectToObject : public dolfin::Expression
   void eval(dolfin::Array<double>& values, const dolfin::Array<double>& x) const
   {
 	btVector3 v(x[0], x[1], x[2]);
-	btVector3 w = transform(v);
+	// btVector3 w = transform(v);
+	btVector3 w = v;
     values[0] = w[0];
     values[1] = w[1];
     values[2] = w[3];
   }
 };
+
+/*
 
 struct ClothDomain : public dolfin::SubDomain
 {
@@ -74,20 +79,22 @@ struct ClothDomain : public dolfin::SubDomain
     : geometry(g), debug(d) {}
   bool inside(const dolfin::Array<double>& x, bool boundary_point) const
   {
-    // std::cout << x[0] << " " << x[1] << " " << x[2];
+    std::cout << x[0] << " " << x[1] << " " << x[2];
     bool b = on_boundary(btVector3(x[0], x[1], x[2]), geometry);
-    // std::cout << debug << " " << b << on_boundary << std::endl;
+    std::cout << debug << " " << b << boundary_point << std::endl;
     return b && boundary_point;
   }
 };
 
+*/
+
 tetgenio constructMesh(const SceneGeometry& cloth1, const SceneGeometry& cloth2,
 		double xmin, double ymin, double zmin, double xmax, double ymax, double zmax);
 
-void build_mesh(const tetgenio& m, dolfin::Mesh& mesh);
+void build_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std::size_t>& boundary);
 
 tetwrap::facet make_facet(const Face& f);
-tetwrap::surface make_surface(const SceneGeometry& g);
+tetwrap::surface make_surface(int marker, const SceneGeometry& g);
 tetwrap::surface make_outer_surface(double xmin, double ymin, double zmin, double xmax, double ymax, double zmax);
 
 #endif

@@ -49,13 +49,17 @@ facet make_tetragon(std::size_t a, std::size_t b, std::size_t c, std::size_t d);
 class surface {
   std::vector<point> vertices;
   std::vector<facet> facets;
+  int marker_; /* The boundary marker applied to elements of this surface */
 public:
+  surface(int marker = 0) { marker_ = marker; }
   void add_vertex(point v) { vertices.push_back(v); }
   void add_facet(const facet& f) { facets.push_back(f); }
   std::size_t num_vertices() const { return vertices.size(); }
   point vertex(std::size_t index) const { return vertices[index]; }
   std::size_t num_facets() const { return facets.size(); }
   facet face(std::size_t index) const {return facets[index]; }
+  int marker() const { return marker_; }
+  void marker(int marker) { marker_ = marker; }
 };
 
 /* A piecewise linear complex with holes */

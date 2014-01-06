@@ -18,8 +18,8 @@ int main() {
 	SceneGeometry a = load("/home/pcm/a.off");
 	SceneGeometry b = load("/home/pcm/b.off");
 
-	tetwrap::surface A = make_surface(a);
-	tetwrap::surface B = make_surface(b);
+	tetwrap::surface A = make_surface(2, a);
+	tetwrap::surface B = make_surface(2, b);
 
 	tetwrap::surface outer;
 	// bottom
@@ -39,6 +39,10 @@ int main() {
 	outer.add_facet(tetwrap::make_tetragon(1, 5, 6, 2)); // right
 	outer.add_facet(tetwrap::make_tetragon(0, 1, 5, 4)); // front
 	outer.add_facet(tetwrap::make_tetragon(3, 2, 6, 7)); // back
+
+	A.marker(2);
+	B.marker(3);
+	outer.marker(4);
 
 	tetwrap::geometry scene;
 	scene.add_component(A);

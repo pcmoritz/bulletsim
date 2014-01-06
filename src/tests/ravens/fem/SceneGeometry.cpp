@@ -96,6 +96,8 @@ SceneGeometry load(const std::string& file_name) {
 	return g;
 }
 
+/*
+
 bool on_boundary(btVector3 p, const SceneGeometry& g)
 {
   double tol = 0.000001;
@@ -158,6 +160,8 @@ bool on_boundary(btVector3 p, const SceneGeometry& g)
 
   return false;
 }
+
+*/
 
 SceneGeometry from_tetwrap(const tetwrap::surface& s) {
 	SceneGeometry geometry;

@@ -4,6 +4,9 @@
 #include <boost/foreach.hpp>
 #include "ravens_config.h"
 #include <utility>
+#include <ScenePlayer.hpp>
+
+#include <dolfin.h>
 
 using namespace std;
 
@@ -12,10 +15,11 @@ PlotPoints::Ptr gbSrcPlotPoints(new PlotPoints()), gbTargPlotPoints(new PlotPoin
 bool gbLinesAdded;
 
 RegistrationBijectModule::RegistrationBijectModule(vector<vector<btVector3> > src_clouds, vector<vector<btVector3> > target_clouds,
+		dolfin::Function* t,
 		int n_iter,
 		float bend_init, float bend_final,
 		float rad_init, float rad_final,
-		float rot_reg, float corr_reg, float outliersd) {
+		float rot_reg, float corr_reg, float outliersd) : transformation(t) {
 
 	assert (("Different number of point-clouds.",src_clouds.size()==target_clouds.size()));
 
@@ -58,9 +62,18 @@ btVector3 RegistrationBijectModule::transform_point(btVector3 pt) {
 }
 
 vector<btVector3> RegistrationBijectModule::transform_points(const vector<btVector3> &pts) {
-	py::object py_pts = pointsToNumpy(pts);
-	py::object transformed_py_pts = registration_module.attr("transform_points")(py_pts);
-	return pointsFromNumpy(transformed_py_pts);
+	//py::object py_pts = pointsToNumpy(pts);
+	//py::object transformed_py_pts = registration_module.attr("transform_points")(py_pts);
+	//return pointsFromNumpy(transformed_py_pts);
+	std::vector<btVector3> result;
+	for(int i = 0; i < pts.size(); i++) {
+		btVector3 p;
+		p.setX((*transformation)[0](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
+		p.setY((*transformation)[1](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
+		p.setZ((*transformation)[2](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
+		result.push_back(p);
+	}
+	return result;
 }
 
 /** Transform a 4x4 btTransform using tps.
@@ -486,11 +499,11 @@ int RavensLFDBij::segnum = 0;
  *  SRC_PTS_ : the reference point locations.
  *  TARGET_PTS_: the new point locations. */
 RavensLFDBij::RavensLFDBij (Ravens &ravens_, const vector<vector<btVector3> > &src_clouds,
-		const vector<vector<btVector3> > & target_clouds) :
+		const vector<vector<btVector3> > & target_clouds, dolfin::Function* t) :
 		ravens(ravens_),
 		plot_lines_left(new PlotLines),
 		plot_lines_right(new PlotLines),
-		lfdrpm(new RegistrationBijectModule(src_clouds, target_clouds)) {
+		lfdrpm(new RegistrationBijectModule(src_clouds, target_clouds, t)) {
 
 
 	//std::cout<<colorize("LFD RPM : Please make sure that the src and target points are scaled down by METERS.", "red", true)<<std::endl;
@@ -568,8 +581,8 @@ bool warpRavenJointsBij(Ravens &ravens,
 		const vector<vector<btVector3> > &src_clouds, const vector< vector<btVector3> > &target_clouds,
 		const vector< vector<dReal> >& in_joints, vector< vector<dReal> > & out_joints,
 		const int n_segs,
-		const vector<float> & perturbations, const string rec_fname) {
-	RavensLFDBij lfdrpm(ravens, src_clouds, target_clouds);
+		const vector<float> & perturbations, const string rec_fname, dolfin::Function* u) {
+	RavensLFDBij lfdrpm(ravens, src_clouds, target_clouds, u);
 
 	pair<double, double> fg_costs = lfdrpm.lfdrpm->getWarpingCosts();
 	py::object warp_costs = py::make_tuple(fg_costs.first, fg_costs.second);
@@ -597,7 +610,8 @@ bool warpRavenJointsBij(Ravens &ravens,
 }
 
 /** Returns the warping objective cost based on tps_rpm_bij. */
-double getWarpingDistance(const vector<vector<btVector3> > &src_clouds, const vector<vector<btVector3> > &target_clouds) {
-	pair<double, double> fg_costs = RegistrationBijectModule(src_clouds, target_clouds).getWarpingCosts();
+double getWarpingDistance(const vector<vector<btVector3> > &src_clouds, const vector<vector<btVector3> > &target_clouds,
+		dolfin::Function* u) {
+	pair<double, double> fg_costs = RegistrationBijectModule(src_clouds, target_clouds, u).getWarpingCosts();
 	return fg_costs.first + fg_costs.second;
 }

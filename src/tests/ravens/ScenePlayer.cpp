@@ -20,6 +20,8 @@
 #include <dolfin.h>
 #include <dolfin/common/MPI.h>
 #include <dolfin/log/log.h>
+
+#include <dolfin/mesh/Face.h>
 #include <dolfin/mesh/Mesh.h>
 #include <dolfin/mesh/MeshEditor.h>
 #include <dolfin/mesh/MeshPartitioning.h>
@@ -113,7 +115,7 @@ vector<int> ScenePlayer::readDemoLibFile() {
  *  Note: Only the first segment of a demo in the library is used to calculate the cost.
  *
  *  This is done iff findClosestDemo is true. Else getCurrentPlayNumber is used. */
-int ScenePlayer::getClosestDemoNum() {
+int ScenePlayer::getClosestDemoNum(dolfin::Function* u) {
 	// get current scene's points
 	vector<btVector3> target_rope, target_box, target_hole;
 	scene.sRope->getRopePoints(true, target_rope, 1.0/METERS);
@@ -140,7 +142,7 @@ int ScenePlayer::getClosestDemoNum() {
 			src_clouds.push_back(tseg->boxPts);
 			src_clouds.push_back(tseg->holePts);
 
-			warpingDists[i] = getWarpingDistance(src_clouds, target_clouds);
+			warpingDists[i] = getWarpingDistance(src_clouds, target_clouds, u);
 		} else {
 			warpingDists[i] = numeric_limits<double>::infinity();
 		}
@@ -206,7 +208,7 @@ void ScenePlayer::resetPlayer() {
 	unsigned numdemo;
 	if (findClosestDemo) {
 		cout << colorize("Looking up the closest demo in the demo library ... [takes a while]", "magenta", true) <<endl;
-		numdemo = getClosestDemoNum();
+		numdemo = getClosestDemoNum(transform);
 
 		stringstream msg;
 		msg << "Closest demo to current situation found is demo # " << numdemo;
@@ -411,7 +413,8 @@ void ScenePlayer::setupNewSegment() {
 	    tetgenio tet = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
 
 	    dolfin::Mesh mesh;
-	    build_mesh(tet, mesh);
+	    dolfin::MeshFunction<std::size_t> ignore(mesh, 2);
+	    build_mesh(tet, mesh, ignore);
 
 	    dolfin::plot(mesh, "mesh of the new situation");
 	    dolfin::interactive(true);
@@ -430,30 +433,37 @@ void ScenePlayer::setupNewSegment() {
 	    double zmax = 30.0;
 
 	    Mesh standard_mesh;
+
+	    dolfin::MeshFunction<std::size_t> boundary(mesh, 2);
 	    tetgenio tet_standard = constructMesh(first_standard, second_standard, xmin, ymin, zmin, xmax, ymax, zmax);
-	    build_mesh(tet_standard, standard_mesh);
+	    build_mesh(tet_standard, standard_mesh, boundary);
+
+	    dolfin::File boundary_file("/home/pcm/boundary.xml");
+	    boundary_file << boundary;
 
 	    std::cout << "second mesh built" << std::endl;
 
 	    dolfin::plot(standard_mesh, "mesh of standard situation");
 	    dolfin::interactive(true);
 
-	    SceneGeometry box = from_tetwrap(make_outer_surface(xmin, ymin, zmin, xmax, ymax, zmax));
+	    dolfin::plot(boundary, "mesh function");
+	    dolfin::interactive(true);
+
+	    // SceneGeometry box = from_tetwrap(make_outer_surface(xmin, ymin, zmin, xmax, ymax, zmax));
+
+	    parameters["allow_extrapolation"] = true;
 
 	    model::FunctionSpace V(standard_mesh);
 
 	    ObjectToObject left_o2o(btTransform::getIdentity());
 	    ObjectToObject outer_o2o(btTransform::getIdentity());
-	    ObjectToObject right_o2o(second.get_transform());
-
-	    ClothDomain left(first, "left");
-	    ClothDomain right(second, "right");
-	    ClothDomain outer(box, "outer");
+	    //ObjectToObject right_o2o(second.get_transform());
+	    ObjectToObject right_o2o(btTransform::getIdentity());
 
 	    // Create Dirichlet boundary conditions
-	      DirichletBC bci1(V, left_o2o, left);
-	      DirichletBC bci2(V, right_o2o, right);
-	      DirichletBC bco(V, outer_o2o, outer);
+	      DirichletBC bci1(V, left_o2o, boundary, 2);
+	      DirichletBC bci2(V, right_o2o, boundary, 3);
+	      DirichletBC bco(V, outer_o2o, boundary, 4);
 	      std::vector<const BoundaryCondition*> bcs;
 	      bcs.push_back(&bci1);
 	      bcs.push_back(&bci2);
@@ -464,7 +474,7 @@ void ScenePlayer::setupNewSegment() {
 	      Constant T(0.1,  0.0, 0.0);
 
 	      // Define solution function
-	      Function u(V);
+	      Function* u = new Function(V);
 
 	      // Set material parameters
 	      const double E  = 10.0;
@@ -474,16 +484,30 @@ void ScenePlayer::setupNewSegment() {
 
 	      // Create (linear) form defining (nonlinear) variational problem
 	      model::ResidualForm F(V);
-	      F.mu = mu; F.lmbda = lambda; F.B = B; F.T = T; F.u = u;
+	      F.mu = mu; F.lmbda = lambda; F.B = B; F.T = T;
+	      F.u = *u;
 
 	      // Create jacobian dF = F' (for use in nonlinear solver).
 	      model::JacobianForm J(V, V);
-	      J.mu = mu; J.lmbda = lambda; J.u = u;
+	      J.mu = mu; J.lmbda = lambda;
+	      J.u = *u;
 
 	      std::cout << "start solving the system" << std::endl;
 
 	      // Solve nonlinear variational problem F(u; v) = 0
-	      solve(F == 0, u, bcs, J);
+	      solve(F == 0, *u, bcs, J);
+
+//std::cout << u[0](10, 10, 10) << " "
+	    		  //<< u[1](10, 10, 10) << " "<< u[2](10, 10, 10) << " "
+	    		  //<< std::endl;
+	      //std::cout << u[0](5, 5, 15) << " "
+	      	    		  //<< u[1](5, 5, 15) << " "<< u[2](5, 5, 15) << " "
+	      	    		  //<< std::endl;
+	      //std::cout << u[0](xmax-0.1, ymax-0.1, zmax-0.1) << " "
+	    		  //<< u[1](xmax-0.1, ymax-0.1, zmax-0.1) << " "
+	    		  //<< u[1](xmax-0.1, ymax-0.1, zmax-0.1) << " " << std::endl;
+
+	      transform = u;
 
 		// warp the joints using LFD/ Trajopt
 		vector<vector<double> > warpedJoints;
@@ -491,7 +515,7 @@ void ScenePlayer::setupNewSegment() {
 				currentTrajSeg->joints, warpedJoints,
 				lookModes.size(),
 				scene.perturbation_vector,
-				scene.sceneRecorder->currentSceneFile);
+				scene.sceneRecorder->currentSceneFile, transform);
 
 		// interpolate the warped-joints at the play-backtimes
 		rjoints = interpolateD( playTimeStamps, warpedJoints, currentTrajSeg->jtimes);

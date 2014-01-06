@@ -105,11 +105,13 @@ tetgenio generate_input(const geometry& g) {
 
   // Fill the vertices array
   in.pointlist = new REAL[in.numberofpoints * 3];
+  in.pointmarkerlist = new int[in.numberofpoints];
   for(int i = 0; i < g.num_components(); i++) {
     for(int j = 0; j < vert_ind.at(i+1) - vert_ind.at(i); j++) {
       in.pointlist[3 * vert_ind.at(i) + 3 * j] = g.component(i).vertex(j).x();
       in.pointlist[3 * vert_ind.at(i) + 3 * j + 1] = g.component(i).vertex(j).y();
       in.pointlist[3 * vert_ind.at(i) + 3 * j + 2] = g.component(i).vertex(j).z();
+      in.pointmarkerlist[vert_ind.at(i) + j] = g.component(i).marker();
     }
   }
 
@@ -119,8 +121,10 @@ tetgenio generate_input(const geometry& g) {
     fac_ind[i+1] = fac_ind[i] + g.component(i).num_facets();
     in.numberoffacets += g.component(i).num_facets();
   }
+
   // Fill the facets array
   in.facetlist = new tetgenio::facet[in.numberoffacets];
+  in.facetmarkerlist = new int[in.numberoffacets];
   for(int i = 0; i < g.num_components(); i++) {
     for(int j = 0; j < fac_ind.at(i+1) - fac_ind.at(i); j++) {
       tetgenio::facet *f = &in.facetlist[fac_ind[i] + j];
@@ -128,6 +132,7 @@ tetgenio generate_input(const geometry& g) {
 	          vert_ind[i] + g.component(i).face(j).vertex(1),
 	          vert_ind[i] + g.component(i).face(j).vertex(2),
 	          vert_ind[i] + g.component(i).face(j).vertex(3));
+      in.facetmarkerlist[fac_ind[i] + j] = g.component(i).marker();
     }
   }
 
