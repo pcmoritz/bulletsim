@@ -1,3 +1,7 @@
 All the internal STL containers could be replaced by tetgen's data structures,
 so that we don't have to store everything in memory twice. However, the PCL
-data strucures are typically small, so this is not an issue most of the times. 
+data strucures are typically small, so this is not an issue most of the times.
+
+Rethink the memory management. The mesh of a surface should only be calculated
+if it hasn't been already and stored somewhere. Maybe also place the larger
+objects onto the heap and do RAII. 

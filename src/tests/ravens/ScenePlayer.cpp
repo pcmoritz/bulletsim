@@ -474,7 +474,7 @@ void ScenePlayer::setupNewSegment() {
 	      Constant T(0.1,  0.0, 0.0);
 
 	      // Define solution function
-	      Function* u = new Function(V);
+	      Function* u = new Function(V); // TODO Remove memory leak
 
 	      // Set material parameters
 	      const double E  = 10.0;

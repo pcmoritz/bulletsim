@@ -101,6 +101,8 @@ tetgenio constructMesh(const SceneGeometry& a, const SceneGeometry& b,
 	return out;
 }
 
+/*
+
 // Apply markers for our boundary conditions
 void mark_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std::size_t>& boundary)
 {
@@ -159,34 +161,6 @@ void mark_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std::
 // Build the mesh and set up the boundary conditions
 void build_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std::size_t>& boundary)
 {
-
-	/*
-  // Clear mesh
-  mesh.clear();
-
-  // Create and initialize mesh editor
-  dolfin::MeshEditor mesh_editor;
-  mesh_editor.open(mesh, 3, 3);
-  mesh_editor.init_vertices(m.numberofpoints);
-  mesh_editor.init_cells(m.numberoftetrahedra);
-
-  for(int i = 0; i < m.numberofpoints; i++) {
-	  // std::cout << "point: " << i << std::endl;
-	  dolfin::Point p(m.pointlist[3*i], m.pointlist[3*i+1], m.pointlist[3*i+2]);
-	  mesh_editor.add_vertex(i, p);
-  }
-
-  for(int i = 0; i < m.numberoftetrahedra; i++) {
-	  // std::cout << "tetrahedron: " << i << " of "<< m.numberoftetrahedra << std::endl;
-	  mesh_editor.add_cell(i, m.tetrahedronlist[4*i], m.tetrahedronlist[4*i+1], m.tetrahedronlist[4*i+2], m.tetrahedronlist[4*i+3]);
-  }
-
-  // Close mesh editor
-  mesh_editor.close();
-
-  mark_mesh(m, mesh, boundary);
-
- */
 	std::system("gmsh tetgen-tmpfile.1.mesh -3");
 	std::system("python ../convert.py");
 
@@ -196,3 +170,4 @@ void build_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std:
 	boundary_file >> boundary;
 }
 
+*/

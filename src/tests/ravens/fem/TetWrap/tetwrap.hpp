@@ -1,4 +1,4 @@
-/* Philipp Moritz <pcmoritz@gmail.com>, written in January 2014 */
+// Philipp Moritz <pcmoritz@gmail.com>, written in January 2014
 
 #ifndef PCL_HPP
 #define PCL_HPP
@@ -16,7 +16,7 @@ typedef double REAL;
 
 namespace tetwrap {
 
-/* A class for three dimensional points in cartesian coordinates */
+// A class for three dimensional points in cartesian coordinates
 class point {
   REAL x_, y_, z_;
   friend std::ostream& operator<<(std::ostream& out, const point& p);
@@ -32,7 +32,7 @@ public:
   void z(REAL z) { this->z_ = z; }
 };
 
-/* A facet that could be part of a surface */
+// A facet that could be part of a surface
 class facet {
   friend std::ostream& operator<<(std::ostream& out, const facet& f);
   friend std::istream& operator>>(std::istream& in, facet& f);
@@ -45,11 +45,11 @@ public:
 
 facet make_tetragon(std::size_t a, std::size_t b, std::size_t c, std::size_t d);
 
-/* A surface that is the boundary of compact and connected body */
+// A surface that is the boundary of compact and connected body
 class surface {
   std::vector<point> vertices;
   std::vector<facet> facets;
-  int marker_; /* The boundary marker applied to elements of this surface */
+  int marker_; // The boundary marker applied to elements of this surface
 public:
   surface(int marker = 0) { marker_ = marker; }
   void add_vertex(point v) { vertices.push_back(v); }
@@ -62,7 +62,7 @@ public:
   void marker(int marker) { marker_ = marker; }
 };
 
-/* A piecewise linear complex with holes */
+// A piecewise linear complex with holes
 class geometry {
   std::vector<surface> components;
   std::vector<point> holes;
@@ -75,14 +75,17 @@ public:
   point hole(std::size_t index) const { return holes[index]; }
 };
 
-/* Read a surface from an off file */
+// Wrap a surface into a geometry object
+geometry make_geometry(const surface& surface);
+
+// Read a surface from an off file
 surface read_off(std::istream& input);
 
-/* Generate input for mesh generation  */
+// Generate input for mesh generation
 tetgenio generate_input(const geometry& geometry);
 
-/* Generate point in the interior; beware: this operation is expensive,
- * the whole region is triangulated */
+// Generate point in the interior; beware: this operation is expensive,
+// the whole region is triangulated
 point get_interior_point(const surface& surface);
 
 }

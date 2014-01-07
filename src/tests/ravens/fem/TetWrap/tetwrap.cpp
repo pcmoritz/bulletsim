@@ -148,9 +148,14 @@ tetgenio generate_input(const geometry& g) {
   return in;
 }
 
-point get_interior_point(const surface& surface) {
-	tetwrap::geometry body;
+geometry make_geometry(const surface& surface) {
+	geometry body;
 	body.add_component(surface);
+	return body;
+}
+
+point get_interior_point(const surface& surface) {
+	geometry body = make_geometry(surface);
 	tetgenio in = generate_input(body);
 	tetgenio out;
 	char flags[] = "pQ"; // only do triangulation and be quiet
