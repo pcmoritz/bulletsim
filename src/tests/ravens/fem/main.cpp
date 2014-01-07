@@ -59,8 +59,8 @@ int main() {
 	std::cout << tetwrap::get_interior_point(A) << std::endl;
 
 	btVector3 p(1, 1, 15);
-	Shape s(A, xmin, ymin, zmin, xmax, ymax, zmax);
-	std::cout << s.is_inside(p) << std::endl;
+	//Shape s(A, xmin, ymin, zmin, xmax, ymax, zmax);
+	//std::cout << s.is_inside(p) << std::endl;
 
 	//SceneGeometry first = load("/home/pcm/geometry1.off");
 	//SceneGeometry second = load("/home/pcm/geometry2.off");

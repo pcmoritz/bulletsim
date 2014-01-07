@@ -451,7 +451,7 @@ void ScenePlayer::setupNewSegment() {
 
 	    // SceneGeometry box = from_tetwrap(make_outer_surface(xmin, ymin, zmin, xmax, ymax, zmax));
 
-	    parameters["allow_extrapolation"] = true;
+	    // parameters["allow_extrapolation"] = true;
 
 	    model::FunctionSpace V(standard_mesh);
 

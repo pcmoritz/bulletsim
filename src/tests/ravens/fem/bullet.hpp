@@ -24,12 +24,16 @@ class Shape {
 	btCollisionWorld* world_;
 	btAxisSweep3* broadphase_;
 	btSphereShape sphere_;
+	btDefaultCollisionConfiguration* collisionConfiguration_;
+	btCollisionDispatcher* dispatcher_;
 public:
 	~Shape() {
 		delete mesh_;
 		delete shape_;
 		delete world_;
 		delete broadphase_;
+		delete collisionConfiguration_;
+		delete dispatcher_;
 	}
 	Shape(const tetwrap::surface& shape, double xmin, double ymin, double zmin,
 			double xmax, double ymax, double zmax)
@@ -51,23 +55,25 @@ public:
 			mesh_->addTriangle(corners[0], corners[1], corners[2], corners[3]);
 		}
 		shape_ = new btBvhTriangleMeshShape(mesh_, true);
-		btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-		btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+		collisionConfiguration_ = new btDefaultCollisionConfiguration();
+		dispatcher_ = new btCollisionDispatcher(collisionConfiguration_);
 		btVector3	worldAabbMin(xmin,ymin,zmin);
 		btVector3	worldAabbMax(xmax,ymax,zmax);
 		broadphase_ = new btAxisSweep3(worldAabbMin,worldAabbMax);
-		world_ = new btCollisionWorld(dispatcher,broadphase,collisionConfiguration);
+		world_ = new btCollisionWorld(dispatcher_,broadphase_,collisionConfiguration_);
 	}
 	bool is_inside(btVector3 p) {
-		btCompoundShape compound;
+		btCompoundShape* compound = new btCompoundShape();
 		btTransform trans;
 		trans.setIdentity();
 		trans.setOrigin(p);
-		compound.addChildShape(trans, &sphere_);
+		compound->addChildShape(trans, &sphere_);
 		bool collision = false;
 		ContactCallback callback(&collision);
-		world_->contactPairTest((btCollisionObject*)&compound,
-				(btCollisionObject*) shape_, callback);
+		world_->contactPairTest(dynamic_cast<btCollisionObject*>(compound),
+				dynamic_cast<btCollisionObject*>(shape_), callback);
+		// world_->contactPairTest(compound, NULL, callback);
+		delete compound;
 		return collision;
 	}
 
