@@ -56,11 +56,13 @@ int main() {
 	char flags[] = "pq1.414a0.1";
 	tetrahedralize(flags, &in, &out);
 
-	std::cout << tetwrap::get_interior_point(A) << std::endl;
+	tetwrap::point p = tetwrap::get_interior_point(A);
 
-	btVector3 p(1, 1, 15);
-	//Shape s(A, xmin, ymin, zmin, xmax, ymax, zmax);
-	//std::cout << s.is_inside(p) << std::endl;
+	std::cout << p << std::endl;
+
+	btVector3 P(p.x(), p.y(), p.z());
+	Shape s(A, xmin, ymin, zmin, xmax, ymax, zmax);
+	std::cout << s.is_inside(P) << std::endl;
 
 	//SceneGeometry first = load("/home/pcm/geometry1.off");
 	//SceneGeometry second = load("/home/pcm/geometry2.off");
