@@ -160,7 +160,7 @@ void mark_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std::
 // Build the mesh and set up the boundary conditions
 void build_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std::size_t>& boundary)
 {
-	std::system("gmsh tetgen-tmpfile.1.mesh -3");
+	std::system("gmsh tetgen-tmpfile.1.mesh -3 -o output.msh");
 	std::system("python ../convert.py");
 
 	dolfin::File mesh_file("output.xml");
