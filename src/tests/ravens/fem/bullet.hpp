@@ -23,10 +23,9 @@ class Shape {
 	btCollisionObject shapeObj;
 	btCollisionWorld* world_;
 	btAxisSweep3* broadphase_;
-	btSphereShape sphere_;
-	btCollisionObject sphereObj;
 	btDefaultCollisionConfiguration* collisionConfiguration_;
 	btCollisionDispatcher* dispatcher_;
+	double xmax_, ymax_, zmax_;
 public:
 	~Shape() {
 		delete mesh_;
@@ -38,7 +37,7 @@ public:
 	}
 	Shape(const tetwrap::surface& shape, double xmin, double ymin, double zmin,
 			double xmax, double ymax, double zmax)
-	: sphere_(0.01) {
+	: xmax_(xmax), ymax_(ymax), zmax_(zmax) {
 		tetwrap::geometry body = tetwrap::make_geometry(shape);
 		tetgenio in = tetwrap::generate_input(body);
 		tetgenio out;
@@ -55,30 +54,37 @@ public:
 			}
 			mesh_->addTriangle(corners[0], corners[1], corners[2], corners[3]);
 		}
+		std::cout << mesh_->getNumTriangles() << std::endl;
 		shape_ = new btBvhTriangleMeshShape(mesh_, true);
+		shapeObj.setCollisionShape(shape_);
 		collisionConfiguration_ = new btDefaultCollisionConfiguration();
 		dispatcher_ = new btCollisionDispatcher(collisionConfiguration_);
 		btVector3	worldAabbMin(xmin,ymin,zmin);
 		btVector3	worldAabbMax(xmax,ymax,zmax);
 		broadphase_ = new btAxisSweep3(worldAabbMin,worldAabbMax);
 		world_ = new btCollisionWorld(dispatcher_,broadphase_,collisionConfiguration_);
-		sphereObj.setCollisionShape(&sphere_);
-		btTransform trans;
-		trans.setIdentity();
-		shapeObj.setWorldTransform(trans);
-		shapeObj.setCollisionShape(shape_);
+		world_->addCollisionObject(&shapeObj);
 	}
 	bool is_inside(btVector3 p) {
+		btSphereShape* sphere = new btSphereShape(1.0);
+		btCollisionObject object;
+		object.setCollisionShape(sphere);
 		btTransform trans;
-		trans.setIdentity();
+	    btMatrix3x3 basis;
+	    basis.setIdentity();
+		trans.setBasis(basis);
 		trans.setOrigin(p);
-		sphereObj.setWorldTransform(trans);
-		std::cout << p.x() << " " << p.y() << " " << p.z() << std::endl;
-		sphereObj.setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
-		shapeObj.setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT);
-		ContactCallback callback;
-		world_->contactPairTest(&shapeObj, &shapeObj, callback);
-		return callback.has_collided;
+		object.setWorldTransform(trans);
+		// world_->addCollisionObject(&object);
+		btVector3 to(xmax_, ymax_, zmax_);
+		btCollisionWorld::ClosestRayResultCallback callback(to, p);
+		world_->rayTest(to, p, callback);
+		std::cout << "test" << std::endl;
+		// Careful: we assume that only one object is present in the scene.
+		if(callback.hasHit()) {
+			return true;
+		}
+		return false;
 	}
 
 };

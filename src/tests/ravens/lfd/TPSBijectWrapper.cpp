@@ -68,9 +68,13 @@ vector<btVector3> RegistrationBijectModule::transform_points(const vector<btVect
 	std::vector<btVector3> result;
 	for(int i = 0; i < pts.size(); i++) {
 		btVector3 p;
-		p.setX((*transformation)[0](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
-		p.setY((*transformation)[1](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
-		p.setZ((*transformation)[2](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
+		try {
+			p.setX((*transformation)[0](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
+			p.setY((*transformation)[1](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
+			p.setZ((*transformation)[2](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
+		} catch (std::runtime_error& e) {
+			p = btVector3(0, 0, 0);
+		}
 		result.push_back(p);
 	}
 	return result;

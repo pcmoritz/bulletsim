@@ -101,8 +101,6 @@ tetgenio constructMesh(const SceneGeometry& a, const SceneGeometry& b,
 	return out;
 }
 
-/*
-
 
 // Apply markers for our boundary conditions
 void mark_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std::size_t>& boundary)
@@ -170,6 +168,4 @@ void build_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std:
 	dolfin::File boundary_file("output_facet_region.xml");
 	boundary_file >> boundary;
 }
-
-*/
 
