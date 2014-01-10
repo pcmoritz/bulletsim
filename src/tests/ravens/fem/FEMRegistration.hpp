@@ -65,7 +65,7 @@ struct ObjectToObject : public dolfin::Expression
 	btVector3 w = v;
     values[0] = w[0];
     values[1] = w[1];
-    values[2] = w[3];
+    values[2] = w[2];
   }
 };
 

@@ -92,10 +92,10 @@ tetgenio constructMesh(const SceneGeometry& a, const SceneGeometry& b,
 	char flags[] = "pqg";
 	tetrahedralize(flags, &in, 0);
 
-	char out_name[] = "/home/pcm/Dropbox/data/testout";
-	out.save_nodes(out_name);
-	out.save_elements(out_name);
-	out.save_faces(out_name);
+	// char out_name[] = "/home/pcm/Dropbox/data/testout";
+	// out.save_nodes(out_name);
+	// out.save_elements(out_name);
+	// out.save_faces(out_name);
 
 	std::cout << "end of mesh generation" << std::endl;
 	return out;

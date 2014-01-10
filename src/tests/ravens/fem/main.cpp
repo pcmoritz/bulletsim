@@ -4,17 +4,121 @@
 #include "SceneGeometry.hpp"
 #include "bullet.hpp"
 
+#include "fem/model.h"
+
+#include <dolfin.h>
+#include <dolfin/common/MPI.h>
+#include <dolfin/log/log.h>
+
+#include <dolfin/mesh/Face.h>
+#include <dolfin/mesh/Mesh.h>
+#include <dolfin/mesh/MeshEditor.h>
+#include <dolfin/mesh/MeshPartitioning.h>
+
+#include <dolfin/plot/plot.h>
+
 int main() {
 	// SceneGeometry cube = load("/home/pcm/Dropbox/data/cube.off");
 	// SceneGeometry first = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
 	// SceneGeometry second = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
 
-	double xmin = -15.0;
-	double ymin = -15.0;
-	double zmin = 5.0;
-	double xmax = 15.0;
-	double ymax = 15.0;
-	double zmax = 30.0;
+	SceneGeometry first = load("/home/pcm/Dropbox/data/1.off");
+	SceneGeometry second = load("/home/pcm/Dropbox/data/2.off");
+    tetgenio tet = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
+
+    dolfin::Mesh mesh;
+    dolfin::MeshFunction<std::size_t> ignore(mesh, 2);
+    build_mesh(tet, mesh, ignore);
+
+    dolfin::plot(mesh, "mesh of the new situation");
+    dolfin::interactive(true);
+
+    SceneGeometry first_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
+    SceneGeometry second_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
+
+    // YOUR CODE HERE
+    using namespace dolfin;
+
+    double xmin = -15.0;
+    double ymin = -15.0;
+    double zmin = 5.0;
+    double xmax = 15.0;
+    double ymax = 15.0;
+    double zmax = 30.0;
+
+    Mesh standard_mesh;
+
+    dolfin::MeshFunction<std::size_t> boundary(mesh, 2);
+    boundary.init(0);
+    boundary.init(1);
+    boundary.init(2);
+    boundary.init(3);
+    tetgenio tet_standard = constructMesh(first_standard, second_standard, xmin, ymin, zmin, xmax, ymax, zmax);
+    build_mesh(tet_standard, standard_mesh, boundary);
+
+    std::cout << "second mesh built" << std::endl;
+
+    dolfin::plot(standard_mesh, "mesh of standard situation");
+    dolfin::interactive(true);
+
+    dolfin::plot(boundary, "mesh function");
+    dolfin::interactive(true);
+
+    // SceneGeometry box = from_tetwrap(make_outer_surface(xmin, ymin, zmin, xmax, ymax, zmax));
+
+    // parameters["allow_extrapolation"] = true;
+
+    model::FunctionSpace V(standard_mesh);
+
+    ObjectToObject left_o2o(btTransform::getIdentity());
+    ObjectToObject outer_o2o(btTransform::getIdentity());
+    //ObjectToObject right_o2o(second.get_transform());
+    ObjectToObject right_o2o(btTransform::getIdentity());
+
+    // Create Dirichlet boundary conditions
+      DirichletBC bci1(V, left_o2o, boundary, 2);
+      DirichletBC bci2(V, right_o2o, boundary, 3);
+      DirichletBC bco(V, outer_o2o, boundary, 4);
+      std::vector<const DirichletBC*> bcs;
+      bcs.push_back(&bci1);
+      bcs.push_back(&bci2);
+      bcs.push_back(&bco);
+
+      // Define source and boundary traction functions
+      Constant B(0.0, -0.5, 0.0);
+      Constant T(0.1,  0.0, 0.0);
+
+      // Define solution function
+      Function* u = new Function(V); // TODO Remove memory leak
+
+      // Set material parameters
+      const double E  = 10.0;
+      const double nu = 0.3;
+      Constant mu(E/(2*(1 + nu)));
+      Constant lambda(E*nu/((1 + nu)*(1 - 2*nu)));
+
+      // Create (linear) form defining (nonlinear) variational problem
+      model::ResidualForm F(V);
+      F.mu = mu; F.lmbda = lambda; F.B = B; F.T = T;
+      F.u = *u;
+
+      // Create jacobian dF = F' (for use in nonlinear solver).
+      model::JacobianForm J(V, V);
+      J.mu = mu; J.lmbda = lambda;
+      J.u = *u;
+
+      std::cout << "start solving the system" << std::endl;
+
+      // Solve nonlinear variational problem F(u; v) = 0
+      solve(F == 0, *u, bcs, J);
+
+      std::cout << (*u)[0](10, 13, 10) << " "
+    		  << (*u)[1](10, 13, 10) << " "
+    		  << (*u)[2](10, 13, 10) << std::endl;
+
+      dolfin::plot(*u, "function");
+      dolfin::interactive(true);
+      /*
 
 	SceneGeometry a = load("/home/pcm/a.off");
 	SceneGeometry b = load("/home/pcm/b.off");
@@ -63,6 +167,7 @@ int main() {
 	btVector3 P(p.x(), p.y(), p.z());
 	Shape s(A, xmin, ymin, zmin, xmax, ymax, zmax);
 	std::cout << s.is_inside(P) << std::endl;
+	*/
 
 	//SceneGeometry first = load("/home/pcm/geometry1.off");
 	//SceneGeometry second = load("/home/pcm/geometry2.off");

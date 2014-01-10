@@ -76,7 +76,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/ravens)
 
 
 # ---------------- BOOST PYTHON STUFF : LFD --------------------------
-set(RAVENS_DEMO_DIR $ENV{HOME}/Dropbox/bulletsim/src/tests/ravens/recorded/simruns)
+set(RAVENS_DEMO_DIR $ENV{HOME}/bulletsim/src/tests/ravens/recorded/simruns)
 set(RAVENS_STORE_DIR /ravens_data)
 add_definitions("-DRAVENS_DEMO_DIR=${RAVENS_DEMO_DIR}")
 add_definitions("-DRAVENS_STORE_DIR=${RAVENS_STORE_DIR}")
@@ -95,8 +95,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/ravens/fem/modul
 find_package(DOLFIN)
 
 include_directories(${DOLFIN_INCLUDE_DIRS})
-
-
 link_directories("/usr/lib/")
 
 add_executable(ravens ravens/test_ravens.cpp

@@ -69,9 +69,9 @@ vector<btVector3> RegistrationBijectModule::transform_points(const vector<btVect
 	for(int i = 0; i < pts.size(); i++) {
 		btVector3 p;
 		try {
-			p.setX((*transformation)[0](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
-			p.setY((*transformation)[1](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
-			p.setZ((*transformation)[2](pts[i].getX(), pts[i].getY(), pts[i].getZ()));
+			p.setX((*transformation)[0](pts[i].getX() * METERS, pts[i].getY() * METERS, pts[i].getZ() * METERS)/METERS);
+			p.setY((*transformation)[1](pts[i].getX() * METERS, pts[i].getY() * METERS, pts[i].getZ() * METERS)/METERS);
+			p.setZ((*transformation)[2](pts[i].getX() * METERS, pts[i].getY() * METERS, pts[i].getZ() * METERS)/METERS);
 		} catch (std::runtime_error& e) {
 			p = btVector3(0, 0, 0);
 		}

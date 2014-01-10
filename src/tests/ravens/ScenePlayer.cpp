@@ -396,19 +396,18 @@ void ScenePlayer::setupNewSegment() {
 
 		// Export the position of the suturing pad
 		std::pair<SceneGeometry, SceneGeometry> geometry = scene.getSceneGeometry(true);
-		ofstream outfile;
-		outfile.open ("/home/pcm/geometry1.off");
-		outfile << "OFF";
-		outfile << geometry.first << std::endl;
-		outfile.close();
+		std::ofstream out1("/home/pcm/Dropbox/data/1.off");
+		out1 << "OFF";
+		out1 << geometry.first;
+		out1.close();
 
-		outfile.open ("/home/pcm/geometry2.off");
-		outfile << "OFF";
-		outfile << geometry.second << std::endl;
-		outfile.close();
+		std::ofstream out2("/home/pcm/Dropbox/data/2.off");
+		out2 << "OFF";
+		out2 << geometry.second;
+		out2.close();
 
-		SceneGeometry first = load("/home/pcm/geometry1.off");
-		SceneGeometry second = load("/home/pcm/geometry2.off");
+		SceneGeometry first = load("/home/pcm/Dropbox/data/1.off");
+		SceneGeometry second = load("/home/pcm/Dropbox/data/2.off");
 
 	    tetgenio tet = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
 
@@ -419,8 +418,8 @@ void ScenePlayer::setupNewSegment() {
 	    dolfin::plot(mesh, "mesh of the new situation");
 	    dolfin::interactive(true);
 
-	    SceneGeometry first_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
-	    SceneGeometry second_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
+	    SceneGeometry first_standard = first;//load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
+	    SceneGeometry second_standard = second;//load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
 
 	    // YOUR CODE HERE
 	    using namespace dolfin;
@@ -437,9 +436,6 @@ void ScenePlayer::setupNewSegment() {
 	    dolfin::MeshFunction<std::size_t> boundary(mesh, 2);
 	    tetgenio tet_standard = constructMesh(first_standard, second_standard, xmin, ymin, zmin, xmax, ymax, zmax);
 	    build_mesh(tet_standard, standard_mesh, boundary);
-
-	    dolfin::File boundary_file("/home/pcm/boundary.xml");
-	    boundary_file << boundary;
 
 	    std::cout << "second mesh built" << std::endl;
 
@@ -464,7 +460,7 @@ void ScenePlayer::setupNewSegment() {
 	      DirichletBC bci1(V, left_o2o, boundary, 2);
 	      DirichletBC bci2(V, right_o2o, boundary, 3);
 	      DirichletBC bco(V, outer_o2o, boundary, 4);
-	      std::vector<const BoundaryCondition*> bcs;
+	      std::vector<const DirichletBC*> bcs;
 	      bcs.push_back(&bci1);
 	      bcs.push_back(&bci2);
 	      bcs.push_back(&bco);

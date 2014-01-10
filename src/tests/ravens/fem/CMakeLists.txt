@@ -7,9 +7,6 @@ include_directories(${DOLFIN_INCLUDE_DIRS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/modules/")
 
-find_package(CGAL)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frounding-math")
-
 execute_process(COMMAND ffc -l dolfin model.ufl
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
   
@@ -38,7 +35,7 @@ find_package(Bullet)
 include_directories (${BULLET_INCLUDE_DIRS})
 
 add_executable(main main.cpp SceneGeometry.cpp FEMRegistration.cpp)
-target_link_libraries(main  ${BULLET_LIBRARIES} ${Boost_LIBRARIES} tetwrap)
+target_link_libraries(main  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} tetwrap)
 
 add_library(fem SceneGeometry.cpp FEMRegistration.cpp)
 target_link_libraries(fem  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} tetwrap)

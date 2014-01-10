@@ -12,7 +12,7 @@ T = Coefficient(element)        # Traction force on the boundary
 
 # Kinematics
 I = Identity(element.cell().d)  # Identity tensor
-F = I + grad(u)                 # Deformation gradient
+F = grad(u)                 # Deformation gradient
 C = F.T*F                       # Right Cauchy-Green tensor
 
 # Invariants of deformation tensors
@@ -27,7 +27,7 @@ lmbda = Constant(tetrahedron)
 psi = (mu/2)*(Ic - 3) - mu*ln(J) + (lmbda/2)*(ln(J))**2
 
 # Total potential energy
-Pi = psi*dx - inner(B, u)*dx - inner(T, u)*ds
+Pi = psi*dx # - inner(B, u)*dx - inner(T, u)*ds
 
 # First variation of Pi (directional derivative about u in the direction of v)
 F = derivative(Pi, u, v)
