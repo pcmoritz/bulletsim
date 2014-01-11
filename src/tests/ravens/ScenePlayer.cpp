@@ -456,6 +456,10 @@ void ScenePlayer::setupNewSegment() {
 	    //ObjectToObject right_o2o(second.get_transform());
 	    ObjectToObject right_o2o(btTransform::getIdentity());
 
+	    left_o2o.write_to_file("left_o2o");
+	    outer_o2o.write_to_file("outer_o2o");
+	    right_o2o.write_to_file("right_o2o");
+
 	    // Create Dirichlet boundary conditions
 	      DirichletBC bci1(V, left_o2o, boundary, 2);
 	      DirichletBC bci2(V, right_o2o, boundary, 3);
@@ -480,13 +484,13 @@ void ScenePlayer::setupNewSegment() {
 
 	      // Create (linear) form defining (nonlinear) variational problem
 	      model::ResidualForm F(V);
-	      F.mu = mu; F.lmbda = lambda; F.B = B; F.T = T;
+	      F.mu = mu;// F.lmbda = lambda; // F.B = B; F.T = T;
 	      F.u = *u;
 
 	      // Create jacobian dF = F' (for use in nonlinear solver).
 	      model::JacobianForm J(V, V);
-	      J.mu = mu; J.lmbda = lambda;
-	      J.u = *u;
+	      J.mu = mu;// J.lmbda = lambda;
+	      // J.u = *u;
 
 	      std::cout << "start solving the system" << std::endl;
 

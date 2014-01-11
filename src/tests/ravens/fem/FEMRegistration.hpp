@@ -9,6 +9,7 @@
 #include <dolfin/mesh/Face.h>
 
 #include "TetWrap/tetwrap.hpp"
+#include <fstream>
 
 
 
@@ -66,6 +67,21 @@ struct ObjectToObject : public dolfin::Expression
     values[0] = w[0];
     values[1] = w[1];
     values[2] = w[2];
+  }
+  void write_to_file(const std::string& filename) {
+	  std::ofstream out(filename.c_str());
+	  btVector3 origin = transform.getOrigin();
+	  out << origin[0] << ", "
+		  << origin[1] << ", "
+		  << origin[2] << std::endl;
+
+	  btMatrix3x3 matrix = transform.getBasis();
+	  for(int i = 0; i < 3; i++) {
+			  out << matrix[i][0] << ", "
+				  << matrix[i][1] << ", "
+				  << matrix[i][2] << std::endl;
+	  }
+	  out.close();
   }
 };
 
