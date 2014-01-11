@@ -396,18 +396,32 @@ void ScenePlayer::setupNewSegment() {
 
 		// Export the position of the suturing pad
 		std::pair<SceneGeometry, SceneGeometry> geometry = scene.getSceneGeometry(true);
-		std::ofstream out1("/home/pcm/Dropbox/data/1.off");
-		out1 << "OFF";
-		out1 << geometry.first;
-		out1.close();
+		//std::ofstream out1("/home/pcm/Dropbox/data/1.off");
+		//out1 << "OFF";
+		//out1 << geometry.first;
+		//out1.close();
 
-		std::ofstream out2("/home/pcm/Dropbox/data/2.off");
-		out2 << "OFF";
-		out2 << geometry.second;
-		out2.close();
+		//std::ofstream out2("/home/pcm/Dropbox/data/2.off");
+		//out2 << "OFF";
+		//out2 << geometry.second;
+		//out2.close();
 
-		SceneGeometry first = load("/home/pcm/Dropbox/data/1.off");
-		SceneGeometry second = load("/home/pcm/Dropbox/data/2.off");
+		SceneGeometry first = geometry.first;//load("/home/pcm/Dropbox/data/1.off");
+		SceneGeometry second = geometry.second;//load("/home/pcm/Dropbox/data/2.off");
+
+		btTransform trans = second.get_transform();
+		btVector3 origin = trans.getOrigin();
+		std::cout << origin.getX() << " "
+				<< origin.getY() << " "
+				<< origin.getZ() << std::endl;
+
+		btMatrix3x3 matrix = trans.getBasis();
+
+		for(int i = 0; i < 3; i++) {
+				  std::cout << matrix[i][0] << ", "
+					  << matrix[i][1] << ", "
+					  << matrix[i][2] << std::endl;
+		}
 
 	    tetgenio tet = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
 
@@ -418,8 +432,8 @@ void ScenePlayer::setupNewSegment() {
 	    dolfin::plot(mesh, "mesh of the new situation");
 	    dolfin::interactive(true);
 
-	    SceneGeometry first_standard = first;//load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
-	    SceneGeometry second_standard = second;//load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
+	    SceneGeometry first_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
+	    SceneGeometry second_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
 
 	    // YOUR CODE HERE
 	    using namespace dolfin;
@@ -453,8 +467,8 @@ void ScenePlayer::setupNewSegment() {
 
 	    ObjectToObject left_o2o(btTransform::getIdentity());
 	    ObjectToObject outer_o2o(btTransform::getIdentity());
-	    //ObjectToObject right_o2o(second.get_transform());
-	    ObjectToObject right_o2o(btTransform::getIdentity());
+	    ObjectToObject right_o2o(second.get_transform());
+	    // ObjectToObject right_o2o(btTransform::getIdentity());
 
 	    left_o2o.write_to_file("left_o2o");
 	    outer_o2o.write_to_file("outer_o2o");
@@ -464,7 +478,7 @@ void ScenePlayer::setupNewSegment() {
 	      DirichletBC bci1(V, left_o2o, boundary, 2);
 	      DirichletBC bci2(V, right_o2o, boundary, 3);
 	      DirichletBC bco(V, outer_o2o, boundary, 4);
-	      std::vector<const DirichletBC*> bcs;
+	      std::vector<const BoundaryCondition*> bcs;
 	      bcs.push_back(&bci1);
 	      bcs.push_back(&bci2);
 	      bcs.push_back(&bco);

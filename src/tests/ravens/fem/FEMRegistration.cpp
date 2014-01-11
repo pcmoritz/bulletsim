@@ -89,7 +89,7 @@ tetgenio constructMesh(const SceneGeometry& a, const SceneGeometry& b,
 	std::cout << "constructed input" << std::endl;
 
 	tetgenio out;
-	char flags[] = "pqg";
+	char flags[] = "pq1.41g";
 	tetrahedralize(flags, &in, 0);
 
 	// char out_name[] = "/home/pcm/Dropbox/data/testout";

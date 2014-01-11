@@ -62,8 +62,8 @@ struct ObjectToObject : public dolfin::Expression
   void eval(dolfin::Array<double>& values, const dolfin::Array<double>& x) const
   {
 	btVector3 v(x[0], x[1], x[2]);
-	// btVector3 w = transform(v);
-	btVector3 w = v;
+	btVector3 w = transform(v);
+	// btVector3 w = v;
     values[0] = w[0];
     values[1] = w[1];
     values[2] = w[2];
