@@ -499,6 +499,16 @@ void BoxCloth::destroy() {
 	CompoundObject<BulletObject>::destroy();
 }
 
+/*
+btTransform T;
+T.setIdentity();
+btVector3 loc(-1*((n/2)*s)+(i*s), -1*((m/2)*s)+(j*s), 0.0);
+loc += center;
+T.setOrigin(loc);
+T = rot*T;
+transforms.push_back(T);
+*/
+
 SceneGeometry BoxCloth::getBoxClothGeometry() {
 	SceneGeometry geometry;
 	// add upper layer of cloth to the scene
@@ -511,7 +521,7 @@ SceneGeometry BoxCloth::getBoxClothGeometry() {
 			btVector3 xVec = currTfm.getBasis().getColumn(0);
 			btVector3 yVec = currTfm.getBasis().getColumn(1);
 			btVector3 zVec = currTfm.getBasis().getColumn(2);
-			geometry.add_vertex(center + xVec * s/2 + yVec * s/2 + zVec * s/2);
+			geometry.add_vertex(center - xVec * s/2 - yVec * s/2 + zVec * h/2);
 			if (x != n - 1 && y != m - 1) {
 				geometry.add_face(n * y + x, n * y + x + 1, n * y + x + 1 + n, n * y + x + n);
 			}
