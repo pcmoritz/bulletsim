@@ -349,8 +349,10 @@ public:
 	void testGrab();
 	void testGrasping();
 
-	/* Get a description of the suturing pads in the OFF file format */
+	// Get a description of the suturing pads in the OFF file format
 	std::pair<SceneGeometry, SceneGeometry> getSceneGeometry(bool transformed);
+	// Get the corners of the two suturing cloth pieces
+	std::pair<std::vector<btVector3>, std::vector<btVector3> > getClothCorners();
 };
 
 

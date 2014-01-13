@@ -11,11 +11,14 @@
 #include "TetWrap/tetwrap.hpp"
 #include <fstream>
 
+#include <Eigen/Core>
+#include <Eigen/LU>
 
 
-struct NonRigidTransform {
-	std::vector<btVector3> operator()(const std::vector<btVector3>& v);
-};
+
+// struct NonRigidTransform {
+// 	std::vector<btVector3> operator()(const std::vector<btVector3>& v);
+// };
 
 struct Meshes {
 	dolfin::Mesh* domain_mesh;
@@ -47,8 +50,16 @@ public:
 		zmax = b.getZ();
 	}
 
-	NonRigidTransform constructTransform();
+	// NonRigidTransform constructTransform();
 };
+
+// A transformation of the form x => R * x + t
+typedef std::pair<Eigen::Matrix3d, Eigen::Vector3d> RigidTransform;
+typedef std::vector<Eigen::Vector3d> PointCloud;
+
+RigidTransform affine_transformation(const PointCloud& domain_points, const PointCloud& range_points);
+
+btTransform constructTransform(const std::string& domain_file_name, const PointCloud& range_points);
 
 // Evaluate the transformation from the boundary of one cube to the
 // boundary of a transformed cube.
@@ -62,7 +73,7 @@ struct ObjectToObject : public dolfin::Expression
   void eval(dolfin::Array<double>& values, const dolfin::Array<double>& x) const
   {
 	btVector3 v(x[0], x[1], x[2]);
-	btVector3 w = transform(v);
+	btVector3 w = transform * v;
 	// btVector3 w = v;
     values[0] = w[0];
     values[1] = w[1];

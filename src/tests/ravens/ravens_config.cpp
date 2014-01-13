@@ -27,3 +27,5 @@ bool RavenConfig::autoLFD = false;
 bool RavenConfig::saveImage=false;
 int RavenConfig::runnum = -1;
 int RavenConfig::playnum = -1;
+
+bool RavenConfig::writeOff = false;

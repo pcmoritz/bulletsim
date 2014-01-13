@@ -37,6 +37,9 @@ struct RavenConfig : Config {
 	// number of the scene to play
 	static int playnum;
 
+	// Should we write the .off and .corner files for the initial config?
+	static bool writeOff;
+
 
 	RavenConfig() : Config() {
 		params.push_back(new Parameter<int>("cloth", &cloth, "include cloth in screen (1/0)"));
@@ -66,6 +69,7 @@ struct RavenConfig : Config {
 
 		params.push_back(new Parameter<bool>("autoLFD", &autoLFD, "Start playback and logging automatically."));
 		params.push_back(new Parameter<bool>("saveImage", &saveImage, "Save the final scene image to file."));
+		params.push_back(new Parameter<bool>("writeOff", &writeOff, "Save the initial scene to .off and .corner files"));
 
 		params.push_back(new Parameter<int>("runnum", &runnum, "Number of the scene to save. The recorded scene would be saved to runRUNNUM.txt. This runnum is only used if autoLFD is true."));
 		params.push_back(new Parameter<int>("playnum", &playnum, "Number of the scene to use for playback. This playnum is only used if autoLFD is true."));

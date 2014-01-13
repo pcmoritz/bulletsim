@@ -12,10 +12,10 @@
 #include <dolfin/mesh/MeshValueCollection.h>
 #include <fstream>
 
-NonRigidTransform FEMRegistration::constructTransform()
-{
-	return NonRigidTransform();
-}
+//NonRigidTransform FEMRegistration::constructTransform()
+//{
+//	return NonRigidTransform();
+//}
 
 tetwrap::facet make_facet(const Face& f) {
 	tetwrap::facet face;
@@ -101,6 +101,7 @@ tetgenio constructMesh(const SceneGeometry& a, const SceneGeometry& b,
 	return out;
 }
 
+/*
 
 // Apply markers for our boundary conditions
 void mark_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std::size_t>& boundary)
@@ -157,6 +158,8 @@ void mark_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std::
 	}
 }
 
+*/
+
 // Build the mesh and set up the boundary conditions
 void build_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std::size_t>& boundary)
 {
@@ -167,5 +170,76 @@ void build_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std:
 	mesh_file >> mesh;
 	dolfin::File boundary_file("output_facet_region.xml");
 	boundary_file >> boundary;
+}
+
+// Find the rotation matrix R and the translation t such that range_points[i] \approx R * domain_points[i] + t
+RigidTransform affine_transformation(const PointCloud& domain_points, const PointCloud& range_points)
+{
+	assert(domain_points.size() == range_points.size());
+
+	Eigen::VectorXd x_coords(range_points.size());
+	for(int i = 0; i < range_points.size(); i++) {
+		x_coords[i] = range_points[i][0];
+	}
+	Eigen::VectorXd y_coords(range_points.size());
+	for(int i = 0; i < range_points.size(); i++) {
+		y_coords[i] = range_points[i][1];
+	}
+	Eigen::VectorXd z_coords(range_points.size());
+	for(int i = 0; i < range_points.size(); i++) {
+		z_coords[i] = range_points[i][2];
+	}
+
+
+	Eigen::Matrix<double, Eigen::Dynamic, 4> X(domain_points.size(), 4);
+
+	for(int i = 0; i < domain_points.size(); i++) {
+		X(i, 0) = 1.0;
+		X(i, 1) = domain_points[i][0];
+		X(i, 2) = domain_points[i][1];
+		X(i, 3) = domain_points[i][2];
+	}
+
+
+	Eigen::Matrix<double, 4, Eigen::Dynamic> Hhat = (X.transpose() * X).inverse() * X.transpose();
+
+	Eigen::Vector4d x_trans = Hhat * x_coords;
+	Eigen::Vector4d y_trans = Hhat * y_coords;
+	Eigen::Vector4d z_trans = Hhat * z_coords;
+
+	Eigen::Matrix3d R(3, 3);
+	R(0,0) = x_trans[1]; R(0,1) = x_trans[2]; R(0,2) = x_trans[3];
+	R(1,0) = y_trans[1]; R(1,1) = y_trans[2]; R(1,2) = y_trans[3];
+	R(2,0) = z_trans[1]; R(2,1) = z_trans[2]; R(2,2) = z_trans[3];
+
+	Eigen::Vector3d t(3);
+	t[0] = x_trans[0]; t[1] = y_trans[0]; t[2] = z_trans[0];
+
+	return std::make_pair(R, t);
+}
+
+btMatrix3x3 from_eigen(const Eigen::Matrix3d& matrix) {
+	return btMatrix3x3(matrix(0,0), matrix(0,1), matrix(0,2),
+			matrix(1,0), matrix(1,1), matrix(1,2),
+			matrix(2,0), matrix(2,1), matrix(2,2));
+}
+
+btTransform constructTransform(const std::string& domain_file_name, const PointCloud& range_points)
+{
+	PointCloud domain_points;
+	std::ifstream in(domain_file_name.c_str());
+	for(int i = 0; i < 8; i++) {
+		Eigen::Vector3d point;
+		in >> point[0];
+		in >> point[1];
+		in >> point[2];
+		domain_points.push_back(point);
+	}
+	RigidTransform trans = affine_transformation(domain_points, range_points);
+	Eigen::Vector3d origin = trans.second;
+	btTransform result;
+	result.setOrigin(btVector3(origin[0], origin[1], origin[2]));
+	result.setBasis(from_eigen(trans.first));
+	return result;
 }
 

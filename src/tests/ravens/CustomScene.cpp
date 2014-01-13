@@ -1223,3 +1223,9 @@ std::pair<SceneGeometry, SceneGeometry> CustomScene::getSceneGeometry(bool trans
 	}
 	return std::make_pair(g, h);
 }
+
+std::pair<std::vector<btVector3>, std::vector<btVector3> > CustomScene::getClothCorners() {
+	std::vector<btVector3> first = cloth1->getCorners();
+	std::vector<btVector3> second = cloth2->getCorners();
+	return std::make_pair(first, second);
+}

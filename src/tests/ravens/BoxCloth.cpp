@@ -8,6 +8,8 @@
 #include "utils/utils_vector.h"
 #include <utility>
 
+#include <Eigen/Core>
+
 using namespace std;
 
 /** Creates a matrix of transformation for each of the n x m boxes.
@@ -510,8 +512,11 @@ transforms.push_back(T);
 */
 
 SceneGeometry BoxCloth::getBoxClothGeometry() {
+	int M = m+1;
+	int N = n+1;
 	SceneGeometry geometry;
 	// add upper layer of cloth to the scene
+	btVector3 vertices[N][M];
 	for(unsigned int y = 0; y < m; y++) {
 		for(unsigned int x = 0; x < n; x++) {
 			unsigned int curr = grid_to_obj_inds[std::make_pair(x, y)];
@@ -519,11 +524,33 @@ SceneGeometry BoxCloth::getBoxClothGeometry() {
 			btTransform currTfm = children[curr]->getIndexTransform(0);
 			btVector3 center = currTfm.getOrigin();
 			btVector3 xVec = currTfm.getBasis().getColumn(0);
-			btVector3 yVec = currTfm.getBasis().getColumn(1);
-			btVector3 zVec = currTfm.getBasis().getColumn(2);
-			geometry.add_vertex(center - xVec * s/2 - yVec * s/2 + zVec * h/2);
-			if (x != n - 1 && y != m - 1) {
-				geometry.add_face(n * y + x, n * y + x + 1, n * y + x + 1 + n, n * y + x + n);
+			btVector3 yVec = -currTfm.getBasis().getColumn(1);
+			btVector3 zVec = -currTfm.getBasis().getColumn(2);
+			// geometry.add_vertex(center - xVec * s/2 - yVec * s/2 + zVec * h/2);
+			vertices[x][y] = center - xVec * s/2 - yVec * s/2 + zVec * h/2;
+			if(x == n-1) // add last column
+				vertices[x+1][y] = center + xVec * s/2 - yVec * s/2 + zVec * h/2;
+			if(y == m-1) // add last row
+				vertices[x][y+1] = center - xVec * s/2 + yVec * s/2 + zVec * h/2;
+			if(x == n-1 && y == m-1) // add last corner
+				vertices[x+1][y+1] = center + xVec * s/2 + yVec * s/2 + zVec * h/2;
+		}
+	}
+
+	for(unsigned int y = 0; y < M; y++) {
+		for(unsigned int x = 0; x < N; x++) {
+			geometry.add_vertex(vertices[x][y]);
+			std::cout << "vertex (u) " << x << " " << y << ":"
+					<< vertices[x][y].getX() << " "
+					<< vertices[x][y].getY() << " "
+					<< vertices[x][y].getZ() << std::endl;
+		}
+	}
+
+	for(unsigned int y = 0; y < m; y++) {
+		for(unsigned int x = 0; x < n; x++) {
+			if (x != N - 1 && y != M - 1) {
+				geometry.add_face(N * y + x, N * y + x + 1, N * y + x + 1 + N, N * y + x + N);
 			}
 		}
 	}
@@ -535,29 +562,76 @@ SceneGeometry BoxCloth::getBoxClothGeometry() {
 			btTransform currTfm = children[curr]->getIndexTransform(0);
 			btVector3 center = currTfm.getOrigin();
 			btVector3 xVec = currTfm.getBasis().getColumn(0);
-			btVector3 yVec = currTfm.getBasis().getColumn(1);
-			btVector3 zVec = currTfm.getBasis().getColumn(2);
-			geometry.add_vertex(center + xVec * s/2 + yVec * s/2 - zVec * h/2);
-			if (x != n - 1 && y != m - 1) {
-				geometry.add_face(n * m + n * y + x,
-						n * m + n * y + x + 1,
-						n * m + n * y + x + 1 + n,
-						n * m + n * y + x + n);
+			btVector3 yVec = -currTfm.getBasis().getColumn(1);
+			btVector3 zVec = -currTfm.getBasis().getColumn(2);
+			vertices[x][y] = center - xVec * s/2 - yVec * s/2 - zVec * h/2;
+			if(x == n-1) // add last column
+				vertices[x+1][y] = center + xVec * s/2 - yVec * s/2 - zVec * h/2;
+			if(y == m-1) // add last row
+				vertices[x][y+1] = center - xVec * s/2 + yVec * s/2 - zVec * h/2;
+			if(x == n-1 && y == m-1) // add last edge
+				vertices[x+1][y+1] = center + xVec * s/2 + yVec * s/2 - zVec * h/2;
+		}
+	}
+
+	for(unsigned int y = 0; y < M; y++) {
+		for(unsigned int x = 0; x < N; x++) {
+			geometry.add_vertex(vertices[x][y]);
+			std::cout << "vertex (l) " << x << " " << y << ":"
+					<< vertices[x][y].getX() << " "
+					<< vertices[x][y].getY() << " "
+					<< vertices[x][y].getZ() << std::endl;
+		}
+	}
+
+	for(unsigned int y = 0; y < M; y++) {
+		for(unsigned int x = 0; x < N; x++) {
+			if (x != N - 1 && y != M - 1) {
+				geometry.add_face(N * M + N * y + x,
+						N * M + N * y + x + 1,
+						N * M + N * y + x + 1 + N,
+						N * M + N * y + x + N);
 			}
 		}
 	}
+
 	// add connections between upper and lower layer
-	for(unsigned int y = 0; y < m; y += m-1) {
-		for(unsigned int x = 0; x < n-1; x++) {
-			geometry.add_face(n * y + x, n * y + x + 1,
-					n * m + n * y + x + 1, n * m + n * y + x);
+	for(unsigned int y = 0; y < M; y += M-1) {
+		for(unsigned int x = 0; x < N-1; x++) {
+			geometry.add_face(N * y + x, N * y + x + 1,
+					N * M + N * y + x + 1, N * M + N * y + x);
 		}
 	}
-	for(unsigned int x = 0; x < n; x += n-1) {
-			for(unsigned int y = 0; y < m-1; y++) {
-				geometry.add_face(n * y + x, n * (y + 1) + x,
-						n * m + n * (y +1) + x, n * m + n * y + x);
+	for(unsigned int x = 0; x < N; x += N-1) {
+			for(unsigned int y = 0; y < M-1; y++) {
+				geometry.add_face(N * y + x, N * (y + 1) + x,
+						N * M + N * (y +1) + x, N * M + N * y + x);
 			}
 		}
 	return geometry;
+}
+
+std::vector<btVector3> BoxCloth::getCorners() {
+	std::vector<btVector3> result;
+
+	std::vector<std::pair<unsigned int, unsigned int> > corner_coord;
+
+	corner_coord.push_back(std::make_pair(0, 0));
+	corner_coord.push_back(std::make_pair(n-1, 0));
+	corner_coord.push_back(std::make_pair(0, m-1));
+	corner_coord.push_back(std::make_pair(n-1, m-1));
+
+	for(int i = 0; i < corner_coord.size(); i++) {
+		unsigned int x = corner_coord[i].first;
+		unsigned int y = corner_coord[i].second;
+		unsigned int curr = grid_to_obj_inds[std::make_pair(x, y)];
+		// the 0 in getIndexTransform is ignored, see its implementation
+		btTransform currTfm = children[curr]->getIndexTransform(0);
+		btVector3 center = currTfm.getOrigin();
+		btVector3 zVec = currTfm.getBasis().getColumn(2);
+		result.push_back(center + zVec);
+		result.push_back(center - zVec);
+	}
+
+	return result;
 }

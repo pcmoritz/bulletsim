@@ -80,6 +80,8 @@ public:
 	void init();
 	void destroy();
 
-	/* Get the cloth geometry in OFF format; if this it to be combined with other parts of the scene, the indices have to be remapped */
+	// Get the cloth geometry in OFF format; if this it to be combined with other parts of the scene, the indices have to be remapped
 	SceneGeometry getBoxClothGeometry();
+	// Get the eight corners of the cloth for registering the cloth to each other
+	std::vector<btVector3> getCorners();
 };

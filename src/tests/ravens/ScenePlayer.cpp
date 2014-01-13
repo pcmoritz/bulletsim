@@ -27,6 +27,7 @@
 #include <dolfin/mesh/MeshPartitioning.h>
 
 #include <dolfin/plot/plot.h>
+#include <dolfin/plot/VTKPlotter.h>
 
 
 
@@ -394,36 +395,76 @@ void ScenePlayer::setupNewSegment() {
 			target_clouds.push_back(target_hole);
 		}
 
-		// Export the position of the suturing pad
-		std::pair<SceneGeometry, SceneGeometry> geometry = scene.getSceneGeometry(true);
-		//std::ofstream out1("/home/pcm/Dropbox/data/1.off");
-		//out1 << "OFF";
-		//out1 << geometry.first;
-		//out1.close();
+	    double xmin = -20.0;
+	    double ymin = -20.0;
+	    double zmin = 5.0;
+	    double xmax = 20.0;
+	    double ymax = 20.0;
+	    double zmax = 30.0;
 
-		//std::ofstream out2("/home/pcm/Dropbox/data/2.off");
-		//out2 << "OFF";
-		//out2 << geometry.second;
-		//out2.close();
+    	// Export the position of the suturing pad
+    	std::pair<SceneGeometry, SceneGeometry> geometry = scene.getSceneGeometry(true);
+
+    	std::string first_corners = std::string("/home/pcm/Dropbox/data/1.corners");
+    	std::string second_corners = std::string("/home/pcm/Dropbox/data/2.corners");
+
+	    if(RavenConfig::writeOff) {
+	    	std::ofstream out1("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
+	    	out1 << "OFF";
+	    	out1 << geometry.first;
+	    	out1.close();
+
+	    	std::ofstream out2("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
+	    	out2 << "OFF";
+	    	out2 << geometry.second;
+	    	out2.close();
+
+	    	std::pair<std::vector<btVector3>, std::vector<btVector3> > corners = scene.getClothCorners();
+	    	std::ofstream cout1(first_corners.c_str());
+	    	for(int i = 0; i < corners.first.size(); i++) {
+	    		cout1 << corners.first[i].getX() << " ";
+	    		cout1 << corners.first[i].getY() << " ";
+	    		cout1 << corners.first[i].getZ() << " ";
+	    		cout1 << std::endl;
+	    	}
+	    	cout1.close();
+	    	std::ofstream cout2(second_corners.c_str());
+	    	for(int i = 0; i < corners.first.size(); i++) {
+	    		cout2 << corners.second[i].getX() << " ";
+	    		cout2 << corners.second[i].getY() << " ";
+	    		cout2 << corners.second[i].getZ() << " ";
+	    		cout2 << std::endl;
+	    	}
+	    	cout2.close();
+	    }
+
+	    std::pair<std::vector<btVector3>, std::vector<btVector3> > pcl = scene.getClothCorners();
+	    PointCloud first_image;
+	    for(int i = 0; i < pcl.first.size(); i++) {
+	    	btVector3 v = pcl.first[i];
+	    	first_image.push_back(Eigen::Vector3d(v.getX(), v.getY(), v.getZ()));
+	    }
+
+	    PointCloud second_image;
+	    for(int i = 0; i < pcl.second.size(); i++) {
+	    	btVector3 v = pcl.second[i];
+	    	second_image.push_back(Eigen::Vector3d(v.getX(), v.getY(), v.getZ()));
+	    }
+
+	    btTransform first_trafo = constructTransform(first_corners, first_image);
+	    btTransform second_trafo = constructTransform(second_corners, second_image);
+
+	    std::cout << "The Transformation:" << std::endl;
+	    btVector3 origin = second_trafo.getOrigin();
+	    std::cout << origin.getX() << " " << origin.getY() << " " << origin.getZ() << std::endl;
+	    btQuaternion rot = second_trafo.getRotation();
+	    std::cout << rot.getW() << " " << rot.getX() << " " << rot.getY() << " " << rot.getZ() << std::endl;
 
 		SceneGeometry first = geometry.first;//load("/home/pcm/Dropbox/data/1.off");
 		SceneGeometry second = geometry.second;//load("/home/pcm/Dropbox/data/2.off");
 
-		btTransform trans = second.get_transform();
-		btVector3 origin = trans.getOrigin();
-		std::cout << origin.getX() << " "
-				<< origin.getY() << " "
-				<< origin.getZ() << std::endl;
 
-		btMatrix3x3 matrix = trans.getBasis();
-
-		for(int i = 0; i < 3; i++) {
-				  std::cout << matrix[i][0] << ", "
-					  << matrix[i][1] << ", "
-					  << matrix[i][2] << std::endl;
-		}
-
-	    tetgenio tet = constructMesh(first, second, -15.0, -15.0, 5.0, 15.0, 15.0, 30.0);
+	    tetgenio tet = constructMesh(first, second, xmin, ymin, zmin, xmax, ymax, zmax);
 
 	    dolfin::Mesh mesh;
 	    dolfin::MeshFunction<std::size_t> ignore(mesh, 2);
@@ -438,16 +479,9 @@ void ScenePlayer::setupNewSegment() {
 	    // YOUR CODE HERE
 	    using namespace dolfin;
 
-	    double xmin = -15.0;
-	    double ymin = -15.0;
-	    double zmin = 5.0;
-	    double xmax = 15.0;
-	    double ymax = 15.0;
-	    double zmax = 30.0;
-
 	    Mesh standard_mesh;
 
-	    dolfin::MeshFunction<std::size_t> boundary(mesh, 2);
+	    dolfin::MeshFunction<std::size_t> boundary(standard_mesh, 2);
 	    tetgenio tet_standard = constructMesh(first_standard, second_standard, xmin, ymin, zmin, xmax, ymax, zmax);
 	    build_mesh(tet_standard, standard_mesh, boundary);
 
@@ -465,10 +499,9 @@ void ScenePlayer::setupNewSegment() {
 
 	    model::FunctionSpace V(standard_mesh);
 
-	    ObjectToObject left_o2o(btTransform::getIdentity());
+	    ObjectToObject left_o2o(first_trafo);
+	    ObjectToObject right_o2o(second_trafo);
 	    ObjectToObject outer_o2o(btTransform::getIdentity());
-	    ObjectToObject right_o2o(second.get_transform());
-	    // ObjectToObject right_o2o(btTransform::getIdentity());
 
 	    left_o2o.write_to_file("left_o2o");
 	    outer_o2o.write_to_file("outer_o2o");
@@ -511,15 +544,15 @@ void ScenePlayer::setupNewSegment() {
 	      // Solve nonlinear variational problem F(u; v) = 0
 	      solve(F == 0, *u, bcs, J);
 
-//std::cout << u[0](10, 10, 10) << " "
-	    		  //<< u[1](10, 10, 10) << " "<< u[2](10, 10, 10) << " "
-	    		  //<< std::endl;
-	      //std::cout << u[0](5, 5, 15) << " "
-	      	    		  //<< u[1](5, 5, 15) << " "<< u[2](5, 5, 15) << " "
-	      	    		  //<< std::endl;
-	      //std::cout << u[0](xmax-0.1, ymax-0.1, zmax-0.1) << " "
-	    		  //<< u[1](xmax-0.1, ymax-0.1, zmax-0.1) << " "
-	    		  //<< u[1](xmax-0.1, ymax-0.1, zmax-0.1) << " " << std::endl;
+		  std::cout << (*u)[2](1.39804, -4.03008, 15.51) << std::endl;
+		  std::cout << std::endl;
+		  btVector3 ii = second_trafo * btVector3(1.39804, -4.03008, 15.51);
+		  std::cout << ii.getZ();
+		  std::cout << std::endl;
+		  std::cout << second_image[0] << std::endl;
+
+		  dolfin::plot(*u, "the solution", "displacement");
+		  dolfin::interactive(true);
 
 	      transform = u;
 

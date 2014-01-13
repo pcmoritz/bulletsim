@@ -34,8 +34,11 @@ find_package(Bullet)
 
 include_directories (${BULLET_INCLUDE_DIRS})
 
-add_executable(main main.cpp SceneGeometry.cpp FEMRegistration.cpp)
-target_link_libraries(main  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} tetwrap)
+# add_executable(main main.cpp SceneGeometry.cpp FEMRegistration.cpp)
+add_executable(main main.cpp)
+# target_link_libraries(main  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} tetwrap)
+
+set (CMAKE_CXX_FLAGS "--std=c++11")
 
 add_library(fem SceneGeometry.cpp FEMRegistration.cpp)
 target_link_libraries(fem  ${BULLET_LIBRARIES} ${DOLFIN_LIBRARIES} ${Boost_LIBRARIES} tetwrap)

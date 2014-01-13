@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+
+/*
 #include "FEMRegistration.hpp"
 #include "SceneGeometry.hpp"
 #include "bullet.hpp"
@@ -17,7 +19,62 @@
 
 #include <dolfin/plot/plot.h>
 
+#include <btBulletCollisionCommon.h>
+
+*/
+#include <assert.h>
+#include <cstdlib>
+#include <vector>
+
+#include <Eigen/Core>
+#include <Eigen/LU>
+
+#include <random>
+
+typedef std::normal_distribution<double> Gaussian;
+
+
 int main() {
+	int n = 10;
+
+	Gaussian gaussian(0.0, 1.0);
+	std::default_random_engine generator;
+
+	std::vector<Eigen::Vector3d> domain_points;
+	for(int i = 0; i < n; i++) {
+		Eigen::Vector3d p(gaussian(generator),
+				gaussian(generator), gaussian(generator));
+		domain_points.push_back(p);
+	}
+
+
+	Eigen::Matrix3d M(3, 3);
+	M(0, 0) = 1.0;
+	M(1, 1) = 1.0/std::sqrt(2);
+	M(2, 1) = -1.0/std::sqrt(2);
+	M(2, 2) = 1.0/std::sqrt(2);
+	M(1, 2) = 1.0/std::sqrt(2);
+
+
+	Eigen::Vector3d t(3);
+	t[0] = 1.5;
+	t[1] = 1.2;
+	t[2] = 1.1;
+
+	std::vector<Eigen::Vector3d> range_points;
+	for(int i = 0; i < n; i++) {
+		range_points.push_back(M * domain_points[i] + t);
+	}
+
+
+	auto result = affine_transformation(domain_points, range_points);
+
+
+	std::cout << result.first << std::endl;
+	std::cout << result.second << std::endl;
+
+
+	/*
 	// SceneGeometry cube = load("/home/pcm/Dropbox/data/cube.off");
 	// SceneGeometry first = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
 	// SceneGeometry second = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
@@ -118,6 +175,8 @@ int main() {
 
       dolfin::plot(*u, "function");
       dolfin::interactive(true);
+
+   */
       /*
 
 	SceneGeometry a = load("/home/pcm/a.off");
