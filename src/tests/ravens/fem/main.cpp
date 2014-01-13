@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include "FEMRegistration.hpp"
 
 /*
 #include "FEMRegistration.hpp"
@@ -33,21 +35,114 @@
 
 typedef std::normal_distribution<double> Gaussian;
 
+btMatrix3x3 from_eigen(const Eigen::Matrix3d& matrix) {
+	return btMatrix3x3(matrix(0,0), matrix(0,1), matrix(0,2),
+			matrix(1,0), matrix(1,1), matrix(1,2),
+			matrix(2,0), matrix(2,1), matrix(2,2));
+}
 
-int main() {
-	int n = 10;
+// Find the rotation matrix R and the translation t such that range_points[i] \approx R * domain_points[i] + t
+RigidTransform affine_transformation(const PointCloud& domain_points, const PointCloud& range_points)
+{
+	assert(domain_points.size() == range_points.size());
 
-	Gaussian gaussian(0.0, 1.0);
-	std::default_random_engine generator;
-
-	std::vector<Eigen::Vector3d> domain_points;
-	for(int i = 0; i < n; i++) {
-		Eigen::Vector3d p(gaussian(generator),
-				gaussian(generator), gaussian(generator));
-		domain_points.push_back(p);
+	Eigen::VectorXd x_coords(range_points.size());
+	for(int i = 0; i < range_points.size(); i++) {
+		x_coords[i] = range_points[i][0];
+	}
+	Eigen::VectorXd y_coords(range_points.size());
+	for(int i = 0; i < range_points.size(); i++) {
+		y_coords[i] = range_points[i][1];
+	}
+	Eigen::VectorXd z_coords(range_points.size());
+	for(int i = 0; i < range_points.size(); i++) {
+		z_coords[i] = range_points[i][2];
 	}
 
 
+	Eigen::Matrix<double, Eigen::Dynamic, 4> X(domain_points.size(), 4);
+
+	for(int i = 0; i < domain_points.size(); i++) {
+		X(i, 0) = 1.0;
+		X(i, 1) = domain_points[i][0];
+		X(i, 2) = domain_points[i][1];
+		X(i, 3) = domain_points[i][2];
+	}
+
+
+	Eigen::Matrix<double, 4, Eigen::Dynamic> Hhat = (X.transpose() * X).inverse() * X.transpose();
+
+	Eigen::Vector4d x_trans = Hhat * x_coords;
+	Eigen::Vector4d y_trans = Hhat * y_coords;
+	Eigen::Vector4d z_trans = Hhat * z_coords;
+
+	Eigen::Matrix3d R(3, 3);
+	R(0,0) = x_trans[1]; R(0,1) = x_trans[2]; R(0,2) = x_trans[3];
+	R(1,0) = y_trans[1]; R(1,1) = y_trans[2]; R(1,2) = y_trans[3];
+	R(2,0) = z_trans[1]; R(2,1) = z_trans[2]; R(2,2) = z_trans[3];
+
+	Eigen::Vector3d t(3);
+	t[0] = x_trans[0]; t[1] = y_trans[0]; t[2] = z_trans[0];
+
+	return std::make_pair(R, t);
+}
+
+btTransform constructTransform(const std::string& domain_file_name, const PointCloud& range_points)
+{
+	PointCloud domain_points;
+	std::ifstream in(domain_file_name.c_str());
+	for(int i = 0; i < 8; i++) {
+		Eigen::Vector3d point;
+		in >> point[0];
+		in >> point[1];
+		in >> point[2];
+		domain_points.push_back(point);
+	}
+	RigidTransform trans = affine_transformation(domain_points, range_points);
+	Eigen::Vector3d origin = trans.second;
+	btTransform result;
+	result.setOrigin(btVector3(origin[0], origin[1], origin[2]));
+	result.setBasis(from_eigen(trans.first));
+	return result;
+}
+
+int main() {
+	// int n = 10;
+
+	// Gaussian gaussian(0.0, 1.0);
+	// std::default_random_engine generator;
+
+	std::vector<Eigen::Vector3d> domain_points;
+	// for(int i = 0; i < n; i++) {
+	//	Eigen::Vector3d p(gaussian(generator),
+	//			gaussian(generator), gaussian(generator));
+	//	domain_points.push_back(p);
+	//}
+
+	std::ifstream din("/home/pcm/Dropbox/data/2.corners");
+	for(int i = 0; i < 8; i++) {
+		Eigen::Vector3d p;
+		din >> p[0];
+		din >> p[1];
+		din >> p[2];
+		domain_points.push_back(p);
+	}
+	din.close();
+
+	std::vector<Eigen::Vector3d> range_points;
+	std::ifstream rin("/home/pcm/Dropbox/data/current-2.corners");
+	for(int i = 0; i < 8; i++) {
+		Eigen::Vector3d p;
+		rin >> p[0];
+		rin >> p[1];
+		rin >> p[2];
+		range_points.push_back(p);
+	}
+	rin.close();
+
+	btTransform trans = constructTransform("/home/pcm/Dropbox/data/2.corners", range_points);
+
+	/*
 	Eigen::Matrix3d M(3, 3);
 	M(0, 0) = 1.0;
 	M(1, 1) = 1.0/std::sqrt(2);
@@ -60,18 +155,25 @@ int main() {
 	t[0] = 1.5;
 	t[1] = 1.2;
 	t[2] = 1.1;
+	*/
 
-	std::vector<Eigen::Vector3d> range_points;
-	for(int i = 0; i < n; i++) {
-		range_points.push_back(M * domain_points[i] + t);
-	}
+
+	// for(int i = 0; i < n; i++) {
+	// 	range_points.push_back(M * domain_points[i] + t);
+	// }
 
 
 	auto result = affine_transformation(domain_points, range_points);
 
-
 	std::cout << result.first << std::endl;
 	std::cout << result.second << std::endl;
+
+	std::cout << range_points[0] << std::endl;
+	std::cout << result.first * domain_points[0] + result.second << std::endl;
+	std::cout << std::endl;
+
+	std::cout << trans * btVector3(domain_points[0][0], domain_points[0][1], domain_points[0][1]) << std::endl;
+	std::cout << std::endl;
 
 
 	/*

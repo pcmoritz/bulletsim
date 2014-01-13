@@ -629,8 +629,8 @@ std::vector<btVector3> BoxCloth::getCorners() {
 		btTransform currTfm = children[curr]->getIndexTransform(0);
 		btVector3 center = currTfm.getOrigin();
 		btVector3 zVec = currTfm.getBasis().getColumn(2);
-		result.push_back(center + zVec);
-		result.push_back(center - zVec);
+		result.push_back(center + zVec * h/2);
+		result.push_back(center - zVec * h/2);
 	}
 
 	return result;

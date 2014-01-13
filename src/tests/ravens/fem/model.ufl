@@ -24,10 +24,10 @@ mu    = Constant(tetrahedron)
 lmbda = Constant(tetrahedron)
 
 # Stored strain energy density (compressible neo-Hookean model)
-psi = (mu/2)*(Ic - 3) # - mu*ln(J) + (lmbda/2)*(ln(J))**2
+psi = (mu/2)*(Ic - 3) # - mu*ln(J) # + (lmbda/2)*(ln(J))**2
 
 # Total potential energy
-Pi = psi*dx # - inner(B, u)*dx - inner(T, u)*ds
+Pi = psi*dx # - inner(B, u)*dx # - inner(T, u)*ds
 
 # First variation of Pi (directional derivative about u in the direction of v)
 F = derivative(Pi, u, v)

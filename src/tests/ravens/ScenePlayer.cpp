@@ -301,6 +301,17 @@ bool inline ScenePlayer::doNextSegment() {
 	return (playTimeStamps.size() ==0 or currentTimeStampIndex==playTimeStamps.size());
 }
 
+void write_to_file(const std::string& corner_filename, const std::vector<btVector3> corners) {
+	std::ofstream out(corner_filename.c_str());
+	for(int i = 0; i < corners.size(); i++) {
+		out << corners[i].getX() << " ";
+		out << corners[i].getY() << " ";
+		out << corners[i].getZ() << " ";
+		out << std::endl;
+	}
+	out.close();
+}
+
 void ScenePlayer::setupNewSegment() {
 	currentTrajSeg = tsegmenter->getNextSegment();
 
@@ -420,22 +431,9 @@ void ScenePlayer::setupNewSegment() {
 	    	out2.close();
 
 	    	std::pair<std::vector<btVector3>, std::vector<btVector3> > corners = scene.getClothCorners();
-	    	std::ofstream cout1(first_corners.c_str());
-	    	for(int i = 0; i < corners.first.size(); i++) {
-	    		cout1 << corners.first[i].getX() << " ";
-	    		cout1 << corners.first[i].getY() << " ";
-	    		cout1 << corners.first[i].getZ() << " ";
-	    		cout1 << std::endl;
-	    	}
-	    	cout1.close();
-	    	std::ofstream cout2(second_corners.c_str());
-	    	for(int i = 0; i < corners.first.size(); i++) {
-	    		cout2 << corners.second[i].getX() << " ";
-	    		cout2 << corners.second[i].getY() << " ";
-	    		cout2 << corners.second[i].getZ() << " ";
-	    		cout2 << std::endl;
-	    	}
-	    	cout2.close();
+
+	    	write_to_file(first_corners, corners.first);
+	    	write_to_file(second_corners, corners.second);
 	    }
 
 	    std::pair<std::vector<btVector3>, std::vector<btVector3> > pcl = scene.getClothCorners();
@@ -444,6 +442,9 @@ void ScenePlayer::setupNewSegment() {
 	    	btVector3 v = pcl.first[i];
 	    	first_image.push_back(Eigen::Vector3d(v.getX(), v.getY(), v.getZ()));
 	    }
+
+	    write_to_file("/home/pcm/Dropbox/data/current-1.corners", pcl.first);
+	    write_to_file("/home/pcm/Dropbox/data/current-2.corners", pcl.second);
 
 	    PointCloud second_image;
 	    for(int i = 0; i < pcl.second.size(); i++) {
@@ -518,7 +519,7 @@ void ScenePlayer::setupNewSegment() {
 
 	      // Define source and boundary traction functions
 	      Constant B(0.0, -0.5, 0.0);
-	      Constant T(0.1,  0.0, 0.0);
+	      // Constant T(0.1,  0.0, 0.0);
 
 	      // Define solution function
 	      Function* u = new Function(V); // TODO Remove memory leak
@@ -531,7 +532,7 @@ void ScenePlayer::setupNewSegment() {
 
 	      // Create (linear) form defining (nonlinear) variational problem
 	      model::ResidualForm F(V);
-	      F.mu = mu;// F.lmbda = lambda; // F.B = B; F.T = T;
+	      F.mu = mu; // F.lmbda = lambda; // F.B = B; F.T = T;
 	      F.u = *u;
 
 	      // Create jacobian dF = F' (for use in nonlinear solver).
@@ -541,13 +542,33 @@ void ScenePlayer::setupNewSegment() {
 
 	      std::cout << "start solving the system" << std::endl;
 
-	      // Solve nonlinear variational problem F(u; v) = 0
-	      solve(F == 0, *u, bcs, J);
+	      Parameters p("linear_variational_solver");
 
-		  std::cout << (*u)[2](1.39804, -4.03008, 15.51) << std::endl;
+	      // p.add("linear_solver", "lu");
+	      // p.add("preconditioner", "none");
+	      // p.add("linear_solver", "default");
+	      // p.add("preconditioner", "none");
+	      // p.add("symmetric", false);
+	      // p.add("reset_jacobian", true);
+
+	      // Solve nonlinear variational problem F(u; v) = 0
+	      solve(F == 0, *u, bcs, J, p);
+
+
+
+	      double eval_x = -5.99124;
+	      double eval_y = -4.47749;
+	      double eval_z = 16.6628;
+
+	      std::cout << (*u)[0](eval_x, eval_y, eval_z) << std::endl;
+	      std::cout << (*u)[1](eval_x, eval_y, eval_z) << std::endl;
+		  std::cout << (*u)[2](eval_x, eval_y, eval_z) << std::endl;
 		  std::cout << std::endl;
-		  btVector3 ii = second_trafo * btVector3(1.39804, -4.03008, 15.51);
-		  std::cout << ii.getZ();
+		  btVector3 ii = second_trafo * btVector3(eval_x, eval_y, eval_z);
+		  std::cout << ii.getX() << " ";
+		  std::cout << ii.getY() << " ";
+		  std::cout << ii.getZ() << " ";
+		  std::cout << std::endl;
 		  std::cout << std::endl;
 		  std::cout << second_image[0] << std::endl;
 
@@ -571,7 +592,6 @@ void ScenePlayer::setupNewSegment() {
 		rjoints = interpolateD(playTimeStamps, currentTrajSeg->joints, currentTrajSeg->jtimes);
 	}
 }
-
 
 void extractJoints (const vector<int> &inds,
 		const vector<dReal> &in_joint_vals, vector<dReal> &out_joint_vals) {
