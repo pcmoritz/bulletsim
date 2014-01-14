@@ -407,8 +407,10 @@ void ScenePlayer::setupNewSegment() {
 		}
 
 	if (use_rope) { // Do TPS-RPM
+	  std::cout << "USING TPS-RPM" << std::endl;
 	  // warp the joints using LFD/ Trajopt
 	  vector<vector<double> > warpedJoints;
+	  std::cout << "TPS-RPM checkpoint 1" << std::endl;
 	  warpRavenJointsBij_original(scene.ravens, src_clouds, target_clouds,
 				      currentTrajSeg->joints, warpedJoints,
 				      lookModes.size(),
@@ -416,9 +418,12 @@ void ScenePlayer::setupNewSegment() {
 				      scene.sceneRecorder->currentSceneFile);
 
 	  // interpolate the warped-joints at the play-backtimes
+	  std::cout << "TPS-RPM checkpoint 2" << std::endl;
 	  rjoints = interpolateD( playTimeStamps, warpedJoints, currentTrajSeg->jtimes);
+	  std::cout << "TPS-RPM checkpoint 3" << std::endl;
 	}
 	else {
+  	    std::cout << "USING FEM" << std::endl;
 	    double xmin = -20.0;
 	    double ymin = -20.0;
 	    double zmin = 5.0;

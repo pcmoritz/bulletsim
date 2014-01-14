@@ -53,6 +53,7 @@ public:
 	/** Transform a btVector using tps.
 	 *  Performs the mapping: pt in demonstration |--> pt in new setting. */
 	btVector3 transform_point(btVector3 pt);
+	std::vector<btVector3>  transform_points_original(const std::vector<btVector3> &pts);
 	std::vector<btVector3>  transform_points(const std::vector<btVector3> &pts);
 
 	/** Transform a 4x4 btTransform using tps.
@@ -131,6 +132,7 @@ public:
 
 
 	/** plots a grid representing the warping.*/
+	void plot_warped_grid_original(btVector3 mins, btVector3 maxs, int ncoarse=10, int nfine=30);
 	void plot_warped_grid(btVector3 mins, btVector3 maxs, int ncoarse=10, int nfine=30);
 	void clear_grid();
 };

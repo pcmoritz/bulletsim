@@ -92,6 +92,12 @@ btVector3 RegistrationBijectModule::transform_point(btVector3 pt) {
 	return transform_points(one_pt)[0];
 }
 
+vector<btVector3> RegistrationBijectModule::transform_points_original(const vector<btVector3> &pts) {
+	py::object py_pts = pointsToNumpy(pts);
+	py::object transformed_py_pts = registration_module.attr("transform_points")(py_pts);
+	return pointsFromNumpy(transformed_py_pts);
+}
+
 vector<btVector3> RegistrationBijectModule::transform_points(const vector<btVector3> &pts) {
 	//py::object py_pts = pointsToNumpy(pts);
 	//py::object transformed_py_pts = registration_module.attr("transform_points")(py_pts);
@@ -459,6 +465,65 @@ void RavensLFDBij::plotPath (const vector< btTransform > &transforms, PlotLines:
 	}
 }
 
+void RavensLFDBij::plot_warped_grid_original(btVector3 mins, btVector3 maxs, int ncoarse, int nfine) {
+	vector<vector<btVector3> > xlines, ylines, zlines;
+	lfdrpm->warped_grid3d(mins, maxs, ncoarse, nfine, xlines, ylines, zlines);
+
+	// scale up for plotting
+	for(int i=0; i < xlines.size(); i++) {
+		for(int j=0; j < xlines[i].size(); j++) {
+			xlines[i][j] = METERS*xlines[i][j];
+		}
+	}
+
+	// scale up for plotting
+	for(int i=0; i < ylines.size(); i++) {
+		for(int j=0; j < ylines[i].size(); j++) {
+			ylines[i][j] = METERS*ylines[i][j];
+		}
+	}
+
+	// scale up for plotting
+	for(int i=0; i < zlines.size(); i++) {
+		for(int j=0; j < zlines[i].size(); j++) {
+			zlines[i][j] = METERS*zlines[i][j];
+		}
+	}
+
+
+	float gr = 43./255.;
+	float gg = 150./255.;
+	float gb = 0./255;
+	float gt = 0.5;
+
+	pxlines.reset(new PlotLinesSet);
+	pxlines->setDefaultColor(gr,gg,gb,gt);
+	ravens.scene.env->add(pxlines);
+
+	pylines.reset(new PlotLinesSet);
+	pylines->setDefaultColor(gr,gg,gb,gt);
+	ravens.scene.env->add(pylines);
+
+	pzlines.reset(new PlotLinesSet);
+	pzlines->setDefaultColor(gr,gg,gb,gt);
+	ravens.scene.env->add(pzlines);
+
+
+	for(int i=0; i < xlines.size(); i++)
+		pxlines->addLineSet(xlines[i]);
+
+	for(int i=0; i < ylines.size(); i++)
+		pylines->addLineSet(ylines[i]);
+
+	for(int i=0; i < zlines.size(); i++)
+		pzlines->addLineSet(zlines[i]);
+
+	pxlines->shadowsOff();
+	pylines->shadowsOff();
+	pzlines->shadowsOff();
+
+}
+
 void RavensLFDBij::plot_warped_grid(btVector3 mins, btVector3 maxs, int ncoarse, int nfine) {
 	vector<vector<btVector3> > xlines, ylines, zlines;
 	lfdrpm->warped_grid3d(mins, maxs, ncoarse, nfine, xlines, ylines, zlines);
@@ -518,7 +583,6 @@ void RavensLFDBij::plot_warped_grid(btVector3 mins, btVector3 maxs, int ncoarse,
 
 }
 
-
 void RavensLFDBij::clear_grid() {
 	pxlines->clear();
 	pylines->clear();
@@ -566,14 +630,21 @@ RavensLFDBij::RavensLFDBij (Ravens &ravens_, const vector<vector<btVector3> > &s
 	// save clouds to file
 	//save_clouds(source_clouds, target_clouds);
 	if (not RavenConfig::autoLFD) {
+                std::cout << "TPSBijectWrapper checkpoint 1" << std::endl;
+
 		vector<btVector3> srcPoints, targPoints, warpedPoints;
 		vector<btVector4> srcCols, targCols, warpedCols;
+
+                std::cout << "TPSBijectWrapper checkpoint 1" << std::endl;
+
 		BOOST_FOREACH(const vector<btVector3>& cloud, src_clouds) {
 			BOOST_FOREACH(const btVector3& pt, cloud) {
 				srcPoints.push_back(pt*METERS);
 				srcCols.push_back(btVector4(0,0,0,1));
 			}
 		}
+
+                std::cout << "TPSBijectWrapper checkpoint 2" << std::endl;
 
 		BOOST_FOREACH(const vector<btVector3>& cloud, target_clouds) {
 			BOOST_FOREACH(const btVector3& pt, cloud) {
@@ -582,26 +653,36 @@ RavensLFDBij::RavensLFDBij (Ravens &ravens_, const vector<vector<btVector3> > &s
 			}
 		}
 
+                std::cout << "TPSBijectWrapper checkpoint 3" << std::endl;
+
 		BOOST_FOREACH(const vector<btVector3>& cloud, src_clouds) {
-			vector<btVector3> warped_cloud = lfdrpm->transform_points(cloud);
+			vector<btVector3> warped_cloud = lfdrpm->transform_points_original(cloud);
 			BOOST_FOREACH(const btVector3& pt, warped_cloud) {
 				warpedPoints.push_back(pt*METERS);
 				warpedCols.push_back(btVector4(0,1,0,1));
 			}
 		}
 
+                std::cout << "TPSBijectWrapper checkpoint 4" << std::endl;
+
 		//gbSrcPlotPoints->setPoints(srcPoints, srcCols);
 		//gbTargPlotPoints->setPoints(targPoints, targCols);
 		//gbWarpedPlotPoints->setPoints(warpedPoints, warpedCols);
 		if (RavenConfig::plotTfm) {// and RavensLFDBij::segnum==0) {
+		        std::cout << "TPSBijectWrapper checkpoint 5" << std::endl;
+
 			//plotPoints(targPoints);
-			plot_warped_grid(btVector3(-0.1,-0.05,0.15), btVector3(0.1,0.05, .19), 10, 35);
+			//plot_warped_grid_original(btVector3(-0.1,-0.05,0.15), btVector3(0.1,0.05, .19), 10, 35);
 
 			// block for user input
 			cout << colorize("Look at the point-clouds. Press any key [in simulation] to continue.", "red", true)<< endl;
 			ravens.scene.userInput = false;
+			std::cout << "TPSBijectWrapper checkpoint 6" << std::endl;
 			while (!ravens.scene.userInput) {
+                                std::cout << "TPSBijectWrapper checkpoint 7" << std::endl;
 				ravens.scene.viewer.frame();
+				std::cout << "TPSBijectWrapper checkpoint 8" << std::endl;
+
 			}
 		}
 		RavensLFDBij::segnum += 1;
