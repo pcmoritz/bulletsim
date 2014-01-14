@@ -406,6 +406,19 @@ void ScenePlayer::setupNewSegment() {
 			target_clouds.push_back(target_hole);
 		}
 
+	if (use_rope) { // Do TPS-RPM
+	  // warp the joints using LFD/ Trajopt
+	  vector<vector<double> > warpedJoints;
+	  warpRavenJointsBij_original(scene.ravens, src_clouds, target_clouds,
+				      currentTrajSeg->joints, warpedJoints,
+				      lookModes.size(),
+				      scene.perturbation_vector,
+				      scene.sceneRecorder->currentSceneFile);
+
+	  // interpolate the warped-joints at the play-backtimes
+	  rjoints = interpolateD( playTimeStamps, warpedJoints, currentTrajSeg->jtimes);
+	}
+	else {
 	    double xmin = -20.0;
 	    double ymin = -20.0;
 	    double zmin = 5.0;
@@ -471,8 +484,8 @@ void ScenePlayer::setupNewSegment() {
 	    dolfin::MeshFunction<std::size_t> ignore(mesh, 2);
 	    build_mesh(tet, mesh, ignore);
 
-	    dolfin::plot(mesh, "mesh of the new situation");
-	    dolfin::interactive(true);
+	    //dolfin::plot(mesh, "mesh of the new situation");
+	    //dolfin::interactive(true);
 
 	    SceneGeometry first_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-1.off");
 	    SceneGeometry second_standard = load("/home/pcm/Dropbox/data/standard-geometry-cloth-2.off");
@@ -488,11 +501,11 @@ void ScenePlayer::setupNewSegment() {
 
 	    std::cout << "second mesh built" << std::endl;
 
-	    dolfin::plot(standard_mesh, "mesh of standard situation");
-	    dolfin::interactive(true);
+	    //dolfin::plot(standard_mesh, "mesh of standard situation");
+	    //dolfin::interactive(true);
 
-	    dolfin::plot(boundary, "mesh function");
-	    dolfin::interactive(true);
+	    //dolfin::plot(boundary, "mesh function");
+	    //dolfin::interactive(true);
 
 	    // SceneGeometry box = from_tetwrap(make_outer_surface(xmin, ymin, zmin, xmax, ymax, zmax));
 
@@ -572,8 +585,8 @@ void ScenePlayer::setupNewSegment() {
 		  std::cout << std::endl;
 		  std::cout << second_image[0] << std::endl;
 
-		  dolfin::plot(*u, "the solution", "displacement");
-		  dolfin::interactive(true);
+		  //dolfin::plot(*u, "the solution", "displacement");
+		  //dolfin::interactive(true);
 
 	      transform = u;
 
@@ -587,6 +600,8 @@ void ScenePlayer::setupNewSegment() {
 
 		// interpolate the warped-joints at the play-backtimes
 		rjoints = interpolateD( playTimeStamps, warpedJoints, currentTrajSeg->jtimes);
+
+	}
 
 	} else {// just interpolate the recorded joints at the play-back time stamps
 		rjoints = interpolateD(playTimeStamps, currentTrajSeg->joints, currentTrajSeg->jtimes);

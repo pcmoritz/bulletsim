@@ -15,6 +15,37 @@ PlotPoints::Ptr gbSrcPlotPoints(new PlotPoints()), gbTargPlotPoints(new PlotPoin
 bool gbLinesAdded;
 
 RegistrationBijectModule::RegistrationBijectModule(vector<vector<btVector3> > src_clouds, vector<vector<btVector3> > target_clouds,
+		int n_iter,
+		float bend_init, float bend_final,
+		float rad_init, float rad_final,
+		float rot_reg, float corr_reg, float outliersd) {
+
+	assert (("Different number of point-clouds.",src_clouds.size()==target_clouds.size()));
+
+	tps_rpm_func = PyGlobals::lfd_registration_module.attr("tps_rpm_bij");
+
+	py::list py_src_clouds, py_target_clouds;
+	for (int i=0; i<src_clouds.size(); i+=1) {
+		py::object py_src_cloud    = pointsToNumpy(src_clouds[i]);
+		py::object py_target_cloud = pointsToNumpy(target_clouds[i]);
+		py_src_clouds.append(py_src_cloud);
+		py_target_clouds.append(py_target_cloud);
+	}
+	try {
+		f_g_reg_modules = tps_rpm_func(py_src_clouds, py_target_clouds, n_iter,
+				bend_init, bend_final,
+				rad_init, rad_final,
+				rot_reg,
+				false, PyGlobals::None,
+				outliersd, corr_reg, true);
+
+		registration_module = f_g_reg_modules[0];
+	} catch (...) {
+		PyErr_Print();
+	}
+}
+
+RegistrationBijectModule::RegistrationBijectModule(vector<vector<btVector3> > src_clouds, vector<vector<btVector3> > target_clouds,
 		dolfin::Function* t,
 		int n_iter,
 		float bend_init, float bend_final,
@@ -503,6 +534,86 @@ int RavensLFDBij::segnum = 0;
  *  SRC_PTS_ : the reference point locations.
  *  TARGET_PTS_: the new point locations. */
 RavensLFDBij::RavensLFDBij (Ravens &ravens_, const vector<vector<btVector3> > &src_clouds,
+		const vector<vector<btVector3> > & target_clouds) :
+		ravens(ravens_),
+		plot_lines_left(new PlotLines),
+		plot_lines_right(new PlotLines),
+		lfdrpm(new RegistrationBijectModule(src_clouds, target_clouds)) {
+
+
+	//std::cout<<colorize("LFD RPM : Please make sure that the src and target points are scaled down by METERS.", "red", true)<<std::endl;
+
+	larm_indices = ravens.manipL->manip->GetArmIndices();
+	rarm_indices = ravens.manipR->manip->GetArmIndices();
+
+	gbLinesAdded = not RavenConfig::plotTfm;
+
+	if (not gbLinesAdded and not RavenConfig::autoLFD) {
+		ravens.scene.env->add(gbLinesLeft1);
+		ravens.scene.env->add(gbLinesRight1);
+		ravens.scene.env->add(gbWarpedLinesLeft1);
+		ravens.scene.env->add(gbWarpedLinesRight1);
+		ravens.scene.env->add(gbLinesLeft2);
+		ravens.scene.env->add(gbLinesRight2);
+		ravens.scene.env->add(gbWarpedLinesLeft2);
+		ravens.scene.env->add(gbWarpedLinesRight2);
+		ravens.scene.env->add(gbSrcPlotPoints);
+		ravens.scene.env->add(gbTargPlotPoints);
+		ravens.scene.env->add(gbWarpedPlotPoints);
+		gbLinesAdded = true;
+	}
+
+	// save clouds to file
+	//save_clouds(source_clouds, target_clouds);
+	if (not RavenConfig::autoLFD) {
+		vector<btVector3> srcPoints, targPoints, warpedPoints;
+		vector<btVector4> srcCols, targCols, warpedCols;
+		BOOST_FOREACH(const vector<btVector3>& cloud, src_clouds) {
+			BOOST_FOREACH(const btVector3& pt, cloud) {
+				srcPoints.push_back(pt*METERS);
+				srcCols.push_back(btVector4(0,0,0,1));
+			}
+		}
+
+		BOOST_FOREACH(const vector<btVector3>& cloud, target_clouds) {
+			BOOST_FOREACH(const btVector3& pt, cloud) {
+				targPoints.push_back(pt*METERS);
+				targCols.push_back(btVector4(0,0,1,1));
+			}
+		}
+
+		BOOST_FOREACH(const vector<btVector3>& cloud, src_clouds) {
+			vector<btVector3> warped_cloud = lfdrpm->transform_points(cloud);
+			BOOST_FOREACH(const btVector3& pt, warped_cloud) {
+				warpedPoints.push_back(pt*METERS);
+				warpedCols.push_back(btVector4(0,1,0,1));
+			}
+		}
+
+		//gbSrcPlotPoints->setPoints(srcPoints, srcCols);
+		//gbTargPlotPoints->setPoints(targPoints, targCols);
+		//gbWarpedPlotPoints->setPoints(warpedPoints, warpedCols);
+		if (RavenConfig::plotTfm) {// and RavensLFDBij::segnum==0) {
+			//plotPoints(targPoints);
+			plot_warped_grid(btVector3(-0.1,-0.05,0.15), btVector3(0.1,0.05, .19), 10, 35);
+
+			// block for user input
+			cout << colorize("Look at the point-clouds. Press any key [in simulation] to continue.", "red", true)<< endl;
+			ravens.scene.userInput = false;
+			while (!ravens.scene.userInput) {
+				ravens.scene.viewer.frame();
+			}
+		}
+		RavensLFDBij::segnum += 1;
+
+	}
+}
+
+
+/** Ravens   : the robot to transform the joints for.
+ *  SRC_PTS_ : the reference point locations.
+ *  TARGET_PTS_: the new point locations. */
+RavensLFDBij::RavensLFDBij (Ravens &ravens_, const vector<vector<btVector3> > &src_clouds,
 		const vector<vector<btVector3> > & target_clouds, dolfin::Function* t) :
 		ravens(ravens_),
 		plot_lines_left(new PlotLines),
@@ -578,6 +689,38 @@ RavensLFDBij::RavensLFDBij (Ravens &ravens_, const vector<vector<btVector3> > &s
 	}
 }
 
+
+bool warpRavenJointsBij_original(Ravens &ravens,
+		const vector<vector<btVector3> > &src_clouds, const vector< vector<btVector3> > &target_clouds,
+		const vector< vector<dReal> >& in_joints, vector< vector<dReal> > & out_joints,
+		const int n_segs,
+		const vector<float> & perturbations, const string rec_fname) {
+	RavensLFDBij lfdrpm_original(ravens, src_clouds, target_clouds);
+
+	pair<double, double> fg_costs = lfdrpm_original.lfdrpm->getWarpingCosts();
+	py::object warp_costs = py::make_tuple(fg_costs.first, fg_costs.second);
+
+	py::dict suturing_info;
+	suturing_info["perturbations"] = vectorToNumpy(perturbations);
+	suturing_info["num_segs"]      = n_segs;
+	suturing_info["recording_fname"] = rec_fname;
+	suturing_info["warp_costs"]      = warp_costs;
+
+	bool res = lfdrpm_original.transformJointsTrajOpt(in_joints, out_joints, suturing_info);
+	//bool res = lfdrpm.transformJointsIK(in_joints, out_joints, suturing_info);
+
+	if (RavenConfig::plotTfm) {
+		cout << colorize("\tPress any key [in simulation] to continue.", "green", true)<< endl;
+		ravens.scene.userInput = false;
+		while (!ravens.scene.userInput) {
+			ravens.scene.viewer.frame();
+		}
+	}
+
+	if (not RavenConfig::autoLFD and RavenConfig::plotTfm) // then the grid is being plotted ==> clear
+		lfdrpm_original.clear_grid();
+	return res;
+}
 
 /** Warp the joint values of the ravens using SRC_PTS as the reference
  *  and TARGETR_PTS as the new points for warping.*/

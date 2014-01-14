@@ -33,6 +33,14 @@ public:
 	 *    reg_init/reg_final: regularization on curvature; affineness vs. non-affineness
 	 *    rad_init/rad_final: radius for correspondence calculation (meters) */
 	RegistrationBijectModule(std::vector <std::vector<btVector3> > src_clouds,
+				 std::vector <std::vector<btVector3> > target_clouds,
+			int n_iter=50,
+			float bend_init=0.1, float bend_final=0.00001,
+			float rad_init=0.5, float rad_final=0.0001,
+			float rot_reg=1, float corr_reg=0.5, float outliersd=3);
+
+
+	RegistrationBijectModule(std::vector <std::vector<btVector3> > src_clouds,
 			std::vector <std::vector<btVector3> > target_clouds, dolfin::Function* t,
 			int n_iter=50,
 			float bend_init=0.1, float bend_final=0.00001,
@@ -111,6 +119,10 @@ public:
 			       const vector<vector<btVector3> > & target_pts,
 			       dolfin::Function* t);
 
+	RavensLFDBij (Ravens &ravens_, const vector<vector<btVector3> > &src_clouds,
+			       const vector<vector<btVector3> > & target_pts);
+
+
 	/** Warp the joint angles of ravens using warping and trajectory optimization.*/
 	bool transformJointsTrajOpt(const vector<vector<dReal> > &joints, vector<vector<dReal> > &new_joints, py::dict suture_info=PyGlobals::None);
 
@@ -123,6 +135,12 @@ public:
 	void clear_grid();
 };
 
+
+bool warpRavenJointsBij_original(Ravens &ravens,
+		const vector<vector<btVector3> > &src_pts, const vector< vector<btVector3> > &target_pts,
+		const vector< vector<dReal> >& in_joints, vector< vector<dReal> > & out_joints,
+		const int n_segs,
+		const vector<float> & perturbations, const string rec_fname);
 
 /** Warp the joint values of the ravens using SRC_PTS as the reference
  *  and TARGETR_PTS as the new points for warping.*/

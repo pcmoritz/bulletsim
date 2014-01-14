@@ -77,7 +77,8 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/ravens)
 
 # ---------------- BOOST PYTHON STUFF : LFD --------------------------
 set(RAVENS_DEMO_DIR $ENV{HOME}/bulletsim/src/tests/ravens/recorded/simruns)
-set(RAVENS_STORE_DIR /ravens_data)
+#set(RAVENS_STORE_DIR /ravens_data)
+set(RAVENS_STORE_DIR /home/pcm/experiment_output)
 add_definitions("-DRAVENS_DEMO_DIR=${RAVENS_DEMO_DIR}")
 add_definitions("-DRAVENS_STORE_DIR=${RAVENS_STORE_DIR}")
 
