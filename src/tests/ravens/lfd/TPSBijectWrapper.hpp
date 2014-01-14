@@ -53,7 +53,6 @@ public:
 	/** Transform a btVector using tps.
 	 *  Performs the mapping: pt in demonstration |--> pt in new setting. */
 	btVector3 transform_point(btVector3 pt);
-	std::vector<btVector3>  transform_points_original(const std::vector<btVector3> &pts);
 	std::vector<btVector3>  transform_points(const std::vector<btVector3> &pts);
 
 	/** Transform a 4x4 btTransform using tps.
@@ -132,17 +131,9 @@ public:
 
 
 	/** plots a grid representing the warping.*/
-	void plot_warped_grid_original(btVector3 mins, btVector3 maxs, int ncoarse=10, int nfine=30);
 	void plot_warped_grid(btVector3 mins, btVector3 maxs, int ncoarse=10, int nfine=30);
 	void clear_grid();
 };
-
-
-bool warpRavenJointsBij_original(Ravens &ravens,
-		const vector<vector<btVector3> > &src_pts, const vector< vector<btVector3> > &target_pts,
-		const vector< vector<dReal> >& in_joints, vector< vector<dReal> > & out_joints,
-		const int n_segs,
-		const vector<float> & perturbations, const string rec_fname);
 
 /** Warp the joint values of the ravens using SRC_PTS as the reference
  *  and TARGETR_PTS as the new points for warping.*/

@@ -411,11 +411,12 @@ void ScenePlayer::setupNewSegment() {
 	  // warp the joints using LFD/ Trajopt
 	  vector<vector<double> > warpedJoints;
 	  std::cout << "TPS-RPM checkpoint 1" << std::endl;
-	  warpRavenJointsBij_original(scene.ravens, src_clouds, target_clouds,
+	  warpRavenJointsBij(scene.ravens, src_clouds, target_clouds,
 				      currentTrajSeg->joints, warpedJoints,
 				      lookModes.size(),
 				      scene.perturbation_vector,
-				      scene.sceneRecorder->currentSceneFile);
+				      scene.sceneRecorder->currentSceneFile,
+				      0);
 
 	  // interpolate the warped-joints at the play-backtimes
 	  std::cout << "TPS-RPM checkpoint 2" << std::endl;
