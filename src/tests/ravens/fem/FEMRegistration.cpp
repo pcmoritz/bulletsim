@@ -12,6 +12,8 @@
 #include <dolfin/mesh/MeshValueCollection.h>
 #include <fstream>
 
+#include <Eigen/SVD>
+
 //NonRigidTransform FEMRegistration::constructTransform()
 //{
 //	return NonRigidTransform();
@@ -172,9 +174,63 @@ void build_mesh(const tetgenio& m, dolfin::Mesh& mesh, dolfin::MeshFunction<std:
 	boundary_file >> boundary;
 }
 
+// "Least-Squares Fitting of Two 3-D Point Sets" (Arun et al)
+RigidTransform euclidean_transformation(const PointCloud& domain_points, const PointCloud& range_points) {
+	std::cout << "constructing orthogonal transformation" << std::endl;
+	assert(domain_points.size() == range_points.size());
+
+	Eigen::Vector3d p(0.0, 0.0, 0.0);
+	Eigen::Vector3d p_prime(0.0, 0.0, 0.0);
+
+	for(int i = 0; i < domain_points.size(); i++) {
+		p += domain_points[i]/domain_points.size();
+	}
+	for(int i = 0; i < range_points.size(); i++) {
+		p_prime += range_points[i]/range_points.size();
+	}
+
+	Eigen::Matrix<double, Eigen::Dynamic, 3> Q(domain_points.size(), 3);
+	for(int i = 0; i < domain_points.size(); i++) {
+		Q(i, 0) = domain_points[i][0] - p[0];
+		Q(i, 1) = domain_points[i][1] - p[1];
+		Q(i, 2) = domain_points[i][2] - p[2];
+	}
+	Eigen::Matrix<double, Eigen::Dynamic, 3> Q_prime(range_points.size(), 3);
+	for(int i = 0; i < range_points.size(); i++) {
+		Q_prime(i, 0) = range_points[i][0] - p_prime[0];
+		Q_prime(i, 1) = range_points[i][1] - p_prime[1];
+		Q_prime(i, 2) = range_points[i][2] - p_prime[2];
+	}
+
+	Eigen::Matrix3d H = Q.transpose() * Q_prime;
+	Eigen::JacobiSVD<Eigen::Matrix3d> svd(H, Eigen::ComputeThinU | Eigen::ComputeThinV);
+
+	Eigen::Matrix3d R = svd.matrixV() * svd.matrixU().transpose();
+
+	Eigen::Vector3d t = p_prime - R*p;
+
+	for(int i = 0; i < domain_points.size(); i++) {
+		Eigen::Vector3d p = R * domain_points[i] + t;
+		std::cout << "x: " << (R * domain_points[i] + t)[0] << " " << range_points[i][0] << std::endl;
+		std::cout << "y: " << (R * domain_points[i] + t)[1]  << " " << range_points[i][1] << std::endl;
+		std::cout << "z: " << (R * domain_points[i] + t)[2]  << " " << range_points[i][2] << std::endl;
+	}
+
+	std::cout << "determinant: " << R.determinant() << std::endl;
+
+	std::cout << "matrix:" << std::endl;
+	std::cout << R << std::endl;
+	std::cout << "translation:" << std::endl;
+	std::cout << t << std::endl;
+
+	return std::make_pair(R, t);
+}
+
 // Find the rotation matrix R and the translation t such that range_points[i] \approx R * domain_points[i] + t
 RigidTransform affine_transformation(const PointCloud& domain_points, const PointCloud& range_points)
 {
+	std::cout << "constructing affine transformation" << std::endl;
+
 	assert(domain_points.size() == range_points.size());
 
 	Eigen::VectorXd x_coords(range_points.size());
@@ -215,6 +271,20 @@ RigidTransform affine_transformation(const PointCloud& domain_points, const Poin
 	Eigen::Vector3d t(3);
 	t[0] = x_trans[0]; t[1] = y_trans[0]; t[2] = z_trans[0];
 
+	for(int i = 0; i < domain_points.size(); i++) {
+		Eigen::Vector3d p = R * domain_points[i] + t;
+		std::cout << "x: " << p[0] << " " << range_points[i][0] << std::endl;
+		std::cout << "y: " << p[1] << " " << range_points[i][1] << std::endl;
+		std::cout << "z: " << p[2] << " " << range_points[i][2] << std::endl;
+	}
+
+	std::cout << "determinant: " << R.determinant() << std::endl;
+
+	std::cout << "matrix:" << std::endl;
+	std::cout << R << std::endl;
+	std::cout << "translation:" << std::endl;
+	std::cout << t << std::endl;
+
 	return std::make_pair(R, t);
 }
 
@@ -228,14 +298,14 @@ btTransform constructTransform(const std::string& domain_file_name, const PointC
 {
 	PointCloud domain_points;
 	std::ifstream in(domain_file_name.c_str());
-	for(int i = 0; i < 8; i++) {
+	for(int i = 0; !in.eof(); i++) {
 		Eigen::Vector3d point;
 		in >> point[0];
 		in >> point[1];
 		in >> point[2];
 		domain_points.push_back(point);
 	}
-	RigidTransform trans = affine_transformation(domain_points, range_points);
+	RigidTransform trans = euclidean_transformation(domain_points, range_points);
 	Eigen::Vector3d origin = trans.second;
 	btTransform result;
 	result.setOrigin(btVector3(origin[0], origin[1], origin[2]));

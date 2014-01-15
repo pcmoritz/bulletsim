@@ -616,10 +616,15 @@ std::vector<btVector3> BoxCloth::getCorners() {
 
 	std::vector<std::pair<unsigned int, unsigned int> > corner_coord;
 
-	corner_coord.push_back(std::make_pair(0, 0));
-	corner_coord.push_back(std::make_pair(n-1, 0));
-	corner_coord.push_back(std::make_pair(0, m-1));
-	corner_coord.push_back(std::make_pair(n-1, m-1));
+	for(int i = 0; i < n; i++) {
+		for(int j = 0; j < m; j++) {
+			corner_coord.push_back(std::make_pair(i, j));
+		}
+	}
+	//corner_coord.push_back(std::make_pair(2, 2));
+	//corner_coord.push_back(std::make_pair(n-3, 2));
+	//corner_coord.push_back(std::make_pair(2, m-3));
+	//corner_coord.push_back(std::make_pair(n-3, m-3));
 
 	for(int i = 0; i < corner_coord.size(); i++) {
 		unsigned int x = corner_coord[i].first;
